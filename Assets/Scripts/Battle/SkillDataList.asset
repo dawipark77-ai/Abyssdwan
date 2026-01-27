@@ -1,0 +1,120 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fb599c5516cc1224588910fa53d0fe56, type: 3}
+  m_Name: SkillDataList
+  m_EditorClassIdentifier: Assembly-CSharp::SkillDataList
+  skillList:
+  - skillID: 01
+    skillName: Strong Slash
+    skillType: Physical
+    hpCostPercent: 10
+    mpCost: 0
+    minMultiplier: 2
+    maxMultiplier: 2.5
+    icon: {fileID: -1101750654258036731, guid: 3955b202bf839314a830086e1903dd93, type: 3}
+    hitCount: 1
+    scalingStat: Attack
+    selfDamageChance: 0
+    selfDamagePercent: 0
+    isRecovery: 0
+    isDefensive: 0
+    effectValue: 0
+  - skillID: 02
+    skillName: Fireball
+    skillType: Magic
+    hpCostPercent: 0
+    mpCost: 5
+    minMultiplier: 1.8
+    maxMultiplier: 2.3
+    icon: {fileID: -7585716811160231433, guid: c43880bdb1e15444a8fe104ce0204f40, type: 3}
+    hitCount: 1
+    scalingStat: Magic
+    selfDamageChance: 10
+    selfDamagePercent: 0
+    isRecovery: 0
+    isDefensive: 0
+    effectValue: 0
+  - skillID: 03
+    skillName: Slash
+    skillType: Physical
+    hpCostPercent: 5
+    mpCost: 0
+    minMultiplier: 1.5
+    maxMultiplier: 1.8
+    icon: {fileID: 0}
+    hitCount: 1
+    scalingStat: Attack
+    selfDamageChance: 0
+    selfDamagePercent: 0
+    isRecovery: 0
+    isDefensive: 0
+    effectValue: 0
+  - skillID: 04
+    skillName: Meditation
+    skillType: Magic
+    hpCostPercent: 0
+    mpCost: 0
+    minMultiplier: 0
+    maxMultiplier: 0
+    icon: {fileID: 0}
+    hitCount: 1
+    scalingStat: Magic
+    selfDamageChance: 0
+    selfDamagePercent: 0
+    isRecovery: 1
+    isDefensive: 0
+    effectValue: 7
+  - skillID: 05
+    skillName: Magic Bolt
+    skillType: Magic
+    hpCostPercent: 0
+    mpCost: 3
+    minMultiplier: 1.2
+    maxMultiplier: 1.3
+    icon: {fileID: 6787602071849508554, guid: 5e22fb5704628704bb694d9eefe8dc40, type: 3}
+    hitCount: 1
+    scalingStat: Magic
+    selfDamageChance: 10
+    selfDamagePercent: 5
+    isRecovery: 0
+    isDefensive: 0
+    effectValue: 0
+  - skillID: 06
+    skillName: Quickhand
+    skillType: Physical
+    hpCostPercent: 0
+    mpCost: 0
+    minMultiplier: 0.6
+    maxMultiplier: 0.8
+    icon: {fileID: 7002801453173901457, guid: 427edb27ad7da094b984c5f369e757da, type: 3}
+    hitCount: 2
+    scalingStat: Agility
+    selfDamageChance: 0
+    selfDamagePercent: 0
+    isRecovery: 0
+    isDefensive: 0
+    effectValue: 0
+  - skillID: 07
+    skillName: Shield Wall
+    skillType: Physical
+    hpCostPercent: 0
+    mpCost: 0
+    minMultiplier: 0
+    maxMultiplier: 0
+    icon: {fileID: 0}
+    hitCount: 1
+    scalingStat: Attack
+    selfDamageChance: 0
+    selfDamagePercent: 0
+    isRecovery: 0
+    isDefensive: 1
+    effectValue: 20
