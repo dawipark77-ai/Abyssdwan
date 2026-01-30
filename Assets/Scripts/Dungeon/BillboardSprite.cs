@@ -12,7 +12,7 @@ public class BillboardSprite : MonoBehaviour
         targetCamera = Camera.main;
         if (targetCamera == null)
         {
-            targetCamera = FindObjectOfType<Camera>();
+            targetCamera = FindFirstObjectByType<Camera>();
         }
     }
     

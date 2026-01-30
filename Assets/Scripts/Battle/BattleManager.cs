@@ -919,13 +919,22 @@ public class BattleManager : MonoBehaviour
 
         PlayerStats allyStats = allyObj.AddComponent<PlayerStats>();
         allyStats.playerName = preset.name;
-        allyStats.maxHP = preset.maxHP;
-        allyStats.maxMP = preset.maxMP;
-        allyStats.attack = preset.attack;
-        allyStats.defense = preset.defense;
-        allyStats.magic = preset.magic;
-        allyStats.Agility = preset.agility;
-        allyStats.luck = preset.luck;
+
+        // Create a runtime PlayerStatData SO for this ally
+        allyStats.statData = ScriptableObject.CreateInstance<PlayerStatData>();
+        allyStats.statData.level = 1;
+        allyStats.statData.exp = 0;
+
+        // Set base stats (instead of final calculated stats, which are now read-only)
+        allyStats.baseHP = preset.maxHP;
+        allyStats.baseMP = preset.maxMP;
+        allyStats.baseAttack = preset.attack;
+        allyStats.baseDefense = preset.defense;
+        allyStats.baseMagic = preset.magic;
+        allyStats.baseAgility = preset.agility;
+        allyStats.baseLuck = preset.luck;
+
+        // characterClass is null, so maxHP/maxMP/stats will use base values directly
 
         var gm = GameManager.Instance;
         if (gm != null && gm.partyData.ContainsKey(allyStats.playerName))
@@ -936,8 +945,8 @@ public class BattleManager : MonoBehaviour
         else
         {
             // GameManager에 데이터가 없으면 풀피로 초기화
-            allyStats.currentHP = preset.maxHP;
-            allyStats.currentMP = preset.maxMP;
+            allyStats.currentHP = allyStats.maxHP;
+            allyStats.currentMP = allyStats.maxMP;
             // GameManager에 저장
             if (gm != null)
             {
@@ -2152,13 +2161,19 @@ public class BattleManager : MonoBehaviour
             else
             {
                 bool critical = CheckCritical(enemy.luck);
-                int damage = CalculateDQDamage(enemy.attack, target.defense, critical);
+
+                // [DEBUG LOG] 적 공격 데미지 계산 전 스탯 확인
+                Debug.Log($"[BattleLog] Enemy Attack: {enemy.attack}, Player Defense: {target.Defense} (base: {target.baseDefense} + bonus: {target.GetDefenseBonus()}), Critical: {critical}");
+
+                int damage = CalculateDQDamage(enemy.attack, target.Defense, critical);
 
                 if (target.isDefending)
                 {
                     damage = Mathf.FloorToInt(damage * (1f - target.defenceReduction));
                     target.isDefending = false;
                 }
+
+                Debug.Log($"[BattleLog] Enemy Final Damage: {damage}");
 
                 target.TakeDamage(damage);
                 AddMessage(critical ? $"{enemy.enemyName} critical hit! {target.playerName} took {damage} damage!" :
@@ -3130,7 +3145,15 @@ public class BattleManager : MonoBehaviour
             else
             {
             bool critical = CheckCritical(attacker.luck);
-            int damage = CalculateDQDamage(attacker.attack, target.defense, critical);
+
+            // [DEBUG LOG] 데미지 계산 전 스탯 확인
+            Debug.Log($"[BattleLog] Player Attack Stats - Base: {attacker.baseAttack}, Bonus: {attacker.GetAttackBonus()}, Final: {attacker.Attack}");
+            Debug.Log($"[BattleLog] Enemy Defense: {target.defense}, Critical: {critical}");
+
+            int damage = CalculateDQDamage(attacker.Attack, target.defense, critical);
+
+            Debug.Log($"[BattleLog] Final Damage: {damage}");
+
             target.TakeDamage(damage, critical);
             AddMessage(critical ? $"Critical hit! {attacker.playerName} dealt {damage}!" : $"{attacker.playerName} attacked and dealt {damage} damage!");
         }
@@ -3255,11 +3278,14 @@ public class BattleManager : MonoBehaviour
             // 회피하지 않았으면 데미지 계산
             bool critical = CheckCritical(attacker.luck);
             float multiplier = Random.Range(skill.minMultiplier, skill.maxMultiplier);
-            
+
             // 스탯 스케일링
-            int baseDamage = attacker.attack;
-            if (skill.scalingStat == "Magic") baseDamage = attacker.magic;
+            int baseDamage = attacker.Attack;
+            if (skill.scalingStat == "Magic") baseDamage = attacker.Magic;
             else if (skill.scalingStat == "Agility") baseDamage = attacker.Agility;
+
+            // [DEBUG LOG] 스킬 데미지 계산 정보
+            Debug.Log($"[BattleLog] Skill {skill.skillName} - Base Stat: {baseDamage}, Multiplier: {multiplier:F2}, Critical: {critical}");
 
             int damage = Mathf.FloorToInt(baseDamage * multiplier);
             if (critical)
@@ -3267,6 +3293,8 @@ public class BattleManager : MonoBehaviour
                 damage = Mathf.FloorToInt(damage * 1.5f);
             }
             damage = Mathf.Max(1, damage);
+
+            Debug.Log($"[BattleLog] Skill Final Damage: {damage}");
 
             // 데미지 적용 (적이 흔들림) - 크리티컬 여부 전달
             target.TakeDamage(damage, critical);

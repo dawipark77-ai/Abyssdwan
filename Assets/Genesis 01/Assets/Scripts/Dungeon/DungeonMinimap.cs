@@ -41,7 +41,7 @@ public class DungeonMinimap : MonoBehaviour
         // 이벤트 매니저 찾기
         if (eventManager == null)
         {
-            eventManager = FindObjectOfType<DungeonEventManager>();
+            eventManager = FindFirstObjectByType<DungeonEventManager>();
         }
         
         InitializeDungeon();

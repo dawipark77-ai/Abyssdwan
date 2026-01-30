@@ -30,7 +30,7 @@ public class Dungeon2DRenderer : MonoBehaviour
         mainCamera = Camera.main;
         if (mainCamera == null)
         {
-            mainCamera = FindObjectOfType<Camera>();
+            mainCamera = FindFirstObjectByType<Camera>();
         }
         
         if (mainCamera == null)
@@ -59,7 +59,7 @@ public class Dungeon2DRenderer : MonoBehaviour
     void ApplyPixelArtFilterToAllTextures()
     {
         // 씬의 모든 Renderer에 Point 필터 적용
-        Renderer[] renderers = FindObjectsOfType<Renderer>();
+        Renderer[] renderers = Object.FindObjectsByType<Renderer>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
         foreach (Renderer renderer in renderers)
         {
             if (renderer.material != null && renderer.material.mainTexture != null)

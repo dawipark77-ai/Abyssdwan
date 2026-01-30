@@ -19,7 +19,7 @@ public class ClassTester : MonoBehaviour
         // 타겟이 없으면 자동으로 찾기
         if (targetPlayer == null)
         {
-            targetPlayer = FindObjectOfType<PlayerStats>();
+            targetPlayer = FindFirstObjectByType<PlayerStats>();
             if (targetPlayer != null)
             {
                 Debug.Log($"[ClassTester] PlayerStats 자동 발견: {targetPlayer.playerName}");

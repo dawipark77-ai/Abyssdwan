@@ -1,0 +1,9 @@
+한글로 답해
+
+"로직은 완벽해. 하지만 여전히 맵 스테이터스 창은 130 그대로야. 이유는 DungeonStatusView가 맵에 돌아왔을 때 데이터를 새로고침하지 않기 때문이야. 아래 사항을 즉시 적용해줘."
+
+DungeonStatusView.cs의 OnEnable 수정: 맵 씬이 활성화될 때(창이 열릴 때), 무조건 playerStats.statData.currentHP를 다시 읽어서 화면을 갱신하도록 UpdateUI()를 강제 호출해줘.
+
+데이터 소스 고정: UI가 PlayerStats의 변수를 보지 말고, statData(SO 에셋)에 저장된 값을 최우선으로 그리도록 코드를 확인해줘.
+
+이벤트 재연결: 씬이 바뀌면서 PlayerStats 인스턴스가 바뀌었을 수도 있어. 맵 씬에 있는 PlayerStats와 DungeonStatusView가 제대로 연결되어 있는지 체크하는 로그를 넣어줘.

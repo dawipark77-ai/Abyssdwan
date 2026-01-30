@@ -46,7 +46,7 @@ namespace Genesis01.Dungeon
             }
 
             if (miniMapController == null)
-                miniMapController = FindObjectOfType<MiniMapController>();
+                miniMapController = FindFirstObjectByType<MiniMapController>();
                 
             // Initial update
             if (miniMapController != null)
@@ -161,7 +161,7 @@ namespace Genesis01.Dungeon
             Vector2Int targetPos = currentGridPos + dir;
             bool canMove = true;
             
-            var map = FindObjectOfType<DungeonMap>();
+            var map = FindFirstObjectByType<DungeonMap>();
             if (map != null)
             {
                 if (!map.IsWalkable(0, targetPos.x, targetPos.y))
@@ -189,7 +189,7 @@ namespace Genesis01.Dungeon
                 // Update Minimap (선택적 기능 - 없어도 게임 진행 가능)
                 if (miniMapController == null)
                 {
-                    miniMapController = FindObjectOfType<MiniMapController>();
+                    miniMapController = FindFirstObjectByType<MiniMapController>();
                 }
 
                 if (miniMapController != null)
@@ -265,7 +265,7 @@ namespace Genesis01.Dungeon
 
         private void ExploreSurroundings(Vector2Int center)
         {
-            var map = FindObjectOfType<DungeonMap>();
+            var map = FindFirstObjectByType<DungeonMap>();
             if (map == null) return;
 
             // Explore 3x3 area

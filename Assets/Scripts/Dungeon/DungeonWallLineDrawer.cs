@@ -25,14 +25,14 @@ namespace Genesis01.Dungeon
     
     void Start()
     {
-        if (dungeonMap == null) dungeonMap = FindObjectOfType<Genesis01.Dungeon.DungeonMap>();
+        if (dungeonMap == null) dungeonMap = FindFirstObjectByType<Genesis01.Dungeon.DungeonMap>();
         if (floorTilemap == null)
         {
-            floorTilemap = FindObjectOfType<MapManager>()?.floorTilemap;
+            floorTilemap = FindFirstObjectByType<MapManager>()?.floorTilemap;
         }
         if (wallTilemap == null)
         {
-            wallTilemap = FindObjectOfType<MapManager>()?.wallTilemap;
+            wallTilemap = FindFirstObjectByType<MapManager>()?.wallTilemap;
             if (wallTilemap == null)
             {
                 // Grid/Wall 이름으로 탐색

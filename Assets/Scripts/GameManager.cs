@@ -160,18 +160,12 @@ public class GameManager : MonoBehaviour
         if (staticPartyData.TryGetValue(player.playerName, out PartyMemberData data))
         {
             player.level = data.level;
-            player.jobClass = data.jobClass;
+            // jobClass, maxHP, maxMP, attack, defense, magic, agility, luck are now read-only properties
+            // They are calculated from CharacterClass SO, so we don't restore them
             player.exp = data.exp;
             player.maxExp = data.maxExp;
-            player.maxHP = data.maxHP;
-            player.currentHP = Mathf.Clamp(data.currentHP, 0, data.maxHP);
-            player.maxMP = data.maxMP;
-            player.currentMP = Mathf.Clamp(data.currentMP, 0, data.maxMP);
-            player.attack = data.attack;
-            player.defense = data.defense;
-            player.magic = data.magic;
-            player.Agility = data.agility;
-            player.luck = data.luck;
+            player.currentHP = Mathf.Clamp(data.currentHP, 0, player.maxHP);
+            player.currentMP = Mathf.Clamp(data.currentMP, 0, player.maxMP);
             player.SetIgnited(data.isIgnited, data.igniteTurnsRemaining);
 
             Debug.Log("[SERIALIZATION_FIX] Loaded: " + player.playerName + " HP: " + player.currentHP + "/" + player.maxHP);

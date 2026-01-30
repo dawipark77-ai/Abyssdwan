@@ -40,7 +40,7 @@ public class MinimapUI : MonoBehaviour
             zoomSlider.onValueChanged.AddListener(OnZoomChanged);
         }
         
-        minimapCamera = FindObjectOfType<Camera>();
+        minimapCamera = FindFirstObjectByType<Camera>();
     }
     
     /// <summary>

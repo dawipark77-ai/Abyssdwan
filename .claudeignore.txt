@@ -1,0 +1,7 @@
+Plaintext
+Library/
+Temp/
+Logs/
+UserSettings/
+Packages/
+*.meta

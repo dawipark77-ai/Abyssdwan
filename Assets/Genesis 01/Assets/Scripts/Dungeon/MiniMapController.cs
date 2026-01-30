@@ -25,8 +25,8 @@ public class MiniMapController : MonoBehaviour
         {
             if (instance == null)
             {
-                instance = FindObjectOfType<MiniMapController>();
-                
+                instance = FindFirstObjectByType<MiniMapController>();
+
                 // 씬에 없으면 자동으로 생성
                 if (instance == null)
                 {
@@ -77,8 +77,8 @@ public class MiniMapController : MonoBehaviour
     {
         if (instance == null)
         {
-            instance = FindObjectOfType<MiniMapController>();
-            
+            instance = FindFirstObjectByType<MiniMapController>();
+
             if (instance == null)
             {
                 GameObject obj = new GameObject("MiniMapController");

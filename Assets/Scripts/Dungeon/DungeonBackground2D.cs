@@ -35,7 +35,7 @@ public class DungeonBackground2D : MonoBehaviour
         mainCamera = Camera.main;
         if (mainCamera == null)
         {
-            mainCamera = FindObjectOfType<Camera>();
+            mainCamera = FindFirstObjectByType<Camera>();
         }
         
         // 바닥 생성 (추락 방지)

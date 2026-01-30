@@ -1,7 +1,5 @@
 using UnityEngine;
 
-using UnityEngine;
-
 public class RoomInfo
 {
     public RectInt rect;
@@ -15,6 +13,9 @@ public class RoomInfo
         doorPos = Vector2Int.zero;
     }
 }
+
+
+
 
 
 

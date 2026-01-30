@@ -36,8 +36,8 @@ namespace Genesis01.Dungeon
             if (canvasGroup == null) canvasGroup = gameObject.AddComponent<CanvasGroup>();
             
             // Find dependencies if missing
-            if (dungeonMap == null) dungeonMap = FindObjectOfType<DungeonMap>();
-            if (playerMovement == null) playerMovement = FindObjectOfType<DungeonPlayerMovement>();
+            if (dungeonMap == null) dungeonMap = FindFirstObjectByType<DungeonMap>();
+            if (playerMovement == null) playerMovement = FindFirstObjectByType<DungeonPlayerMovement>();
 
             if (dungeonMap != null)
             {

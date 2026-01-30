@@ -29,7 +29,7 @@ public class MinimapPlayerController : MonoBehaviour
     {
         if (dungeonMinimap == null)
         {
-            dungeonMinimap = FindObjectOfType<DungeonMinimap>();
+            dungeonMinimap = FindFirstObjectByType<DungeonMinimap>();
         }
         
         if (dungeonMinimap != null)

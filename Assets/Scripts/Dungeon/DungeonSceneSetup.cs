@@ -25,7 +25,7 @@ public class DungeonSceneSetup : MonoBehaviour
     public void SetupScene()
     {
         // 던전 생성기 찾기 또는 생성
-        DungeonGenerator generator = FindObjectOfType<DungeonGenerator>();
+        DungeonGenerator generator = FindFirstObjectByType<DungeonGenerator>();
         if (generator == null)
         {
             GameObject generatorObj = new GameObject("DungeonGenerator");
@@ -50,7 +50,7 @@ public class DungeonSceneSetup : MonoBehaviour
     void CreatePlayer()
     {
         // 이미 플레이어가 있으면 스킵
-        if (FindObjectOfType<FirstPersonController>() != null)
+        if (FindFirstObjectByType<FirstPersonController>() != null)
         {
             return;
         }
@@ -80,17 +80,17 @@ public class DungeonSceneSetup : MonoBehaviour
         Camera mainCamera = Camera.main;
         if (mainCamera == null)
         {
-            mainCamera = FindObjectOfType<Camera>();
+            mainCamera = FindFirstObjectByType<Camera>();
         }
-        
+
         if (mainCamera != null)
         {
             // 카메라 설정
             mainCamera.clearFlags = CameraClearFlags.Skybox;
             mainCamera.backgroundColor = new Color(0.05f, 0.05f, 0.1f);
-            
+
             // 플레이어에 카메라가 없으면 메인 카메라를 플레이어에 연결
-            FirstPersonController player = FindObjectOfType<FirstPersonController>();
+            FirstPersonController player = FindFirstObjectByType<FirstPersonController>();
             if (player != null && player.GetComponentInChildren<Camera>() == null)
             {
                 mainCamera.transform.SetParent(player.transform);

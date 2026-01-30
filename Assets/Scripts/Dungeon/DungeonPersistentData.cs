@@ -52,13 +52,12 @@ public static class DungeonPersistentData
     public static void LoadPlayerState(PlayerStats player)
     {
         if (player == null || !hasPlayerStats) return;
-        
+
         player.currentHP = heroHP;
-        player.maxHP = heroMaxHP;
+        // maxHP and maxMP are now read-only properties calculated from CharacterClass SO
         player.currentMP = heroMP;
-        player.maxMP = heroMaxMP;
         player.SetIgnited(heroIgnited, heroIgniteTurns);
-        
+
         Debug.Log($"[DungeonPersistentData] Loaded Player State: HP {heroHP}/{heroMaxHP}, MP {heroMP}/{heroMaxMP}, Ignited: {heroIgnited}");
     }
 }

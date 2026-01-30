@@ -130,7 +130,7 @@ public class MapManager : MonoBehaviour
         DungeonPersistentData.currentSeed = Random.Range(int.MinValue, int.MaxValue);
 
         // 벽선 라인도 초기화
-        Genesis01.Dungeon.DungeonWallLineDrawer drawer = FindObjectOfType<Genesis01.Dungeon.DungeonWallLineDrawer>();
+        Genesis01.Dungeon.DungeonWallLineDrawer drawer = FindFirstObjectByType<Genesis01.Dungeon.DungeonWallLineDrawer>();
         if (drawer != null)
         {
             drawer.ResetLines();
@@ -141,7 +141,7 @@ public class MapManager : MonoBehaviour
         if (floorTilemap != null) floorTilemap.ClearAllTiles();
         if (wallTilemap != null) wallTilemap.ClearAllTiles();
 
-        DungeonGridPlayer player = FindObjectOfType<DungeonGridPlayer>();
+        DungeonGridPlayer player = FindFirstObjectByType<DungeonGridPlayer>();
         if (player != null)
         {
             player.gridPos = Vector2Int.zero;

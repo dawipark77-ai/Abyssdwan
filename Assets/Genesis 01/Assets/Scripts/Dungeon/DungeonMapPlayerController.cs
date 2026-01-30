@@ -21,7 +21,7 @@ public class DungeonMapPlayerController : MonoBehaviour
     {
         if (dungeonMap == null)
         {
-            dungeonMap = FindObjectOfType<DungeonMap>();
+            dungeonMap = FindFirstObjectByType<DungeonMap>();
         }
         
         if (dungeonMap != null)

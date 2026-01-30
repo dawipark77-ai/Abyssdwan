@@ -9,7 +9,7 @@ public class DungeonInputBinder : MonoBehaviour
 
     void Start()
     {
-        player = FindObjectOfType<DungeonGridPlayer>();
+        player = FindFirstObjectByType<DungeonGridPlayer>();
         if (player == null)
         {
             Debug.LogError("DungeonInputBinder: No Player found!");
@@ -34,7 +34,7 @@ public class DungeonInputBinder : MonoBehaviour
     private void BindButton(string nameToken, UnityEngine.Events.UnityAction action)
     {
         // Find button by exact name or checking text child
-        Button[] allButtons = FindObjectsOfType<Button>(true); // Include inactive
+        Button[] allButtons = Object.FindObjectsByType<Button>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         
         foreach (var btn in allButtons)
         {

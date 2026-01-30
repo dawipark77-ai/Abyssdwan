@@ -2776,6 +2776,7 @@ GameObject:
   - component: {fileID: 481923463}
   - component: {fileID: 481923465}
   - component: {fileID: 481923466}
+  - component: {fileID: 481923467}
   m_Layer: 0
   m_Name: PlayerMarker
   m_TagString: Untagged
@@ -2892,6 +2893,34 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DungeonEncounter
   encounterChance: 0.09
   battleSceneName: Abyysborn_Battle 01
+--- !u!114 &481923467
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 481923460}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6635ad0edf2791042ac1cdda7d1b8b3c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerStats
+  statData: {fileID: 11400000, guid: a176c788f5d164441af8bae214804085, type: 2}
+  playerName: warrior
+  baseHP: 100
+  baseMP: 10
+  baseAttack: 5
+  baseDefense: 5
+  baseMagic: 5
+  baseAgility: 5
+  baseLuck: 3
+  characterClass: {fileID: 11400000, guid: 8a0e4d071afd8734db05c41ff62774b9, type: 2}
+  maxExp: 100
+  isDefending: 0
+  defenceReduction: 0.4
+  defenseBuffAmount: 0
+  isIgnited: 0
+  igniteTurnsRemaining: 0
 --- !u!1 &489313531
 GameObject:
   m_ObjectHideFlags: 0

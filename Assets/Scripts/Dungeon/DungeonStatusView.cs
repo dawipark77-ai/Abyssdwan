@@ -36,227 +36,198 @@ public class DungeonStatusView : MonoBehaviour
     void OnEnable()
     {
         // 패널이 켜질 때마다 데이터 갱신
-        Debug.Log("[DungeonStatusView] OnEnable Called!");
+        Debug.Log("[DungeonStatusView] ========== OnEnable 호출됨 ==========");
+
+        // [NEW] 이벤트 구독
+        PlayerStats.OnStatusChanged += UpdateUI;
+
+        // [FIX] 맵 씬 활성화 시 무조건 데이터 새로고침
+        Debug.Log("[DungeonStatusView] 강제 데이터 갱신 시작...");
         UpdateUI();
+        Invoke(nameof(UpdateUI), 0.1f);  // 0.1초 후 다시 갱신 (초기화 완료 대기)
+        Invoke(nameof(UpdateUI), 0.3f);  // 0.3초 후 한 번 더 갱신 (확실한 동기화)
+    }
+
+    void OnDisable()
+    {
+        // [NEW] 이벤트 구독 해제
+        PlayerStats.OnStatusChanged -= UpdateUI;
     }
 
     public void UpdateUI()
     {
-        // GameManager가 없으면 생성을 시도
-        var gm = GameManager.EnsureInstance();
-        if (gm == null)
+        Debug.Log("[DungeonStatusView] ========== UpdateUI 호출됨 ==========");
+
+        // [FIX] PlayerStats 찾기 - 씬에 있는 유효한 인스턴스 사용
+        PlayerStats playerInScene = FindFirstObjectByType<PlayerStats>();
+
+        if (playerInScene == null)
         {
-            Debug.LogError("[DungeonStatusView] GameManager is NULL!");
+            Debug.LogError("[DungeonStatusView] ✗ PlayerStats를 찾을 수 없습니다! 씬에 PlayerStats 컴포넌트가 있는지 확인하세요.");
             return;
         }
 
-        Debug.Log("[DungeonStatusView] GM Found. Party Count: " + GameManager.staticPartyData.Count);
+        // [DEBUG] PlayerStats 인스턴스 정보 (씬 전환 시 인스턴스가 바뀌는지 체크)
+        Debug.Log($"[DungeonStatusView] ✓ PlayerStats 발견:");
+        Debug.Log($"  └─ GameObject: {playerInScene.gameObject.name}");
+        Debug.Log($"  └─ InstanceID: {playerInScene.GetInstanceID()}");
+        Debug.Log($"  └─ Scene: {playerInScene.gameObject.scene.name}");
 
-        // PlayerStats 찾기 또는 생성
-        PlayerStats playerInScene = FindFirstObjectByType<PlayerStats>();
-        
-        // PlayerStats가 없으면 생성
-        if (playerInScene == null)
+        // [FIX] statData(SO) 연결 확인
+        if (playerInScene.statData == null)
         {
-            // 1순위: DungeonGridPlayer를 찾아서 PlayerStats 추가
-            var dungeonPlayer = FindFirstObjectByType<DungeonGridPlayer>();
-            if (dungeonPlayer != null)
+            Debug.LogError("[DungeonStatusView] ✗ statData(SO)가 연결되지 않았습니다!");
+            return;
+        }
+
+        Debug.Log($"[DungeonStatusView] ✓ statData 연결됨: {playerInScene.statData.name}");
+
+        // [FIX] 데이터 소스 고정: SO 에셋을 최우선으로 읽기
+        int hp = playerInScene.statData.currentHP;      // SO에서 직접 읽기
+        int maxHp = playerInScene.maxHP;                 // 계산된 값
+        int mp = playerInScene.statData.currentMP;      // SO에서 직접 읽기
+        int maxMp = playerInScene.maxMP;                 // 계산된 값
+
+        Debug.Log($"[DungeonStatusView] SO에서 직접 읽은 데이터:");
+        Debug.Log($"  └─ HP: {hp}/{maxHp}");
+        Debug.Log($"  └─ MP: {mp}/{maxMp}");
+
+        // GameManager에도 동기화 (저장용)
+        var gm = GameManager.EnsureInstance();
+        if (gm != null)
+        {
+            gm.SaveFromPlayer(playerInScene);
+        }
+
+        // 슬롯이 비어있으면 리턴
+        if (slots.Count == 0)
+        {
+            Debug.LogWarning("[DungeonStatusView] slots가 비어있습니다!");
+            return;
+        }
+
+        // [FIX] 첫 번째 슬롯에 PlayerStats의 실시간 데이터 표시
+        var slot = slots[0];
+
+        // 슬롯 활성화
+        if (slot.slotRoot != null) slot.slotRoot.SetActive(true);
+
+        // 텍스트 갱신
+        if (slot.nameText != null) slot.nameText.text = playerInScene.playerName;
+
+        // HP 표시: 보정치 포함
+        if (slot.hpText != null)
+        {
+            int hpBonus = playerInScene.GetHPBonus();
+
+            if (hpBonus != 0)
             {
-                playerInScene = dungeonPlayer.gameObject.AddComponent<PlayerStats>();
-                Debug.Log("[DungeonStatusView] DungeonGridPlayer에 PlayerStats 컴포넌트 자동 추가됨");
+                slot.hpText.text = $"{maxHp}({hpBonus:+#;-#;0})";
             }
             else
             {
-                // 2순위: "Player" 이름의 GameObject 찾기
-                GameObject playerObj = GameObject.Find("Player");
-                if (playerObj == null)
-                {
-                    playerObj = new GameObject("Player");
-                    Debug.Log("[DungeonStatusView] 'Player' GameObject 생성됨");
-                }
-                playerInScene = playerObj.AddComponent<PlayerStats>();
-                Debug.Log("[DungeonStatusView] PlayerStats 컴포넌트 자동 생성됨");
+                slot.hpText.text = maxHp.ToString();
             }
         }
-        
-        // PlayerStats가 제대로 초기화되었는지 확인
-        if (playerInScene != null)
+
+        // Current HP 표시 - 위에서 읽은 변수 사용
+        if (slot.currentHpText != null)
         {
-            // 직업이 적용되지 않았으면 적용
-            if (!string.IsNullOrEmpty(playerInScene.jobClass))
-            {
-                playerInScene.ApplyCharacterClass();
-            }
-            
-            // GameManager에 데이터가 없으면 PlayerStats에서 저장
-            if (GameManager.staticPartyData.Count == 0)
-            {
-                Debug.Log("[DungeonStatusView] Syncing " + playerInScene.name + " with GM data...");
-                gm.SaveFromPlayer(playerInScene);
-                Debug.Log("[DungeonStatusView] 저장 완료! Party Count: " + GameManager.staticPartyData.Count + ", Class: " + playerInScene.jobClass);
-            }
-            else
-            {
-                // 데이터가 있으면 씬의 PlayerStats를 GameManager 데이터로 동기화 (저장된 HP/MP 반영)
-                // 중요: 여기서 SaveFromPlayer를 호출하면 안됨! (전투 후 체력이 깎인 상태가 덮어씌워질 수 있음)
-                gm.ApplyToPlayer(playerInScene);
-                Debug.Log("[DungeonStatusView] PlayerStats sync(Load): " + playerInScene.playerName + " (HP: " + playerInScene.currentHP + "/" + playerInScene.maxHP + ")");
-            }
+            slot.currentHpText.text = $"{hp}/{maxHp}";
+            Debug.Log($"[DungeonStatusView] UI 업데이트: currentHpText = '{hp}/{maxHp}'");
         }
         else
         {
-            Debug.LogError("[DungeonStatusView] PlayerStats를 생성할 수 없습니다!");
+            Debug.LogWarning("[DungeonStatusView] currentHpText가 null입니다! Inspector에서 연결하세요.");
         }
 
-        int index = 0;
-        
-        // GameManager에 저장된 파티 데이터 순회
-        foreach (var kvp in GameManager.staticPartyData)
+        // MP 표시: 보정치 포함
+        if (slot.mpText != null)
         {
-            Debug.Log($"[DungeonStatusView] Processing Data: {kvp.Key}");
-            if (index >= slots.Count) break;
+            int mpBonus = playerInScene.GetMPBonus();
 
-            var data = kvp.Value;
-            var slot = slots[index];
-
-            // 슬롯 활성화
-            if (slot.slotRoot != null) slot.slotRoot.SetActive(true);
-
-            // 텍스트 갱신
-            if (slot.nameText != null) slot.nameText.text = data.characterName;
-            
-            // HP 표시: 현재/최대 형식 + 보정치 표시
-            // Max HP 표시 (기존 hpText 재활용)
-            if (slot.hpText != null) 
+            if (mpBonus != 0)
             {
-                // 보정치 계산 (절대값: Max - Base)
-                int hpBonus = data.maxHP - data.baseHP;
-                
-                if (hpBonus != 0) 
-                {
-                    slot.hpText.text = data.maxHP + "(" + (hpBonus > 0 ? "+" : "") + hpBonus + ")";
-                }
-                else
-                {
-                    slot.hpText.text = data.maxHP.ToString();
-                }
-            }
-
-            // Current HP 표시 (Current / Max)
-            if (slot.currentHpText != null)
-            {
-                slot.currentHpText.text = data.currentHP + "/" + data.maxHP;
-            }
-            
-            // MP 표시: 현재/최대 형식 + 보정치 표시
-            // Max MP 표시 (기존 mpText 재활용)
-            if (slot.mpText != null) 
-            {
-                // 보정치 계산 (절대값: Max - Base)
-                int mpBonus = data.maxMP - data.baseMP;
-                
-                if (mpBonus != 0) 
-                {
-                    slot.mpText.text = $"{data.maxMP}({mpBonus:+#;-#;0})";
-                }
-                else
-                {
-                    slot.mpText.text = $"{data.maxMP}";
-                }
-            }
-
-            // Current MP 표시 (Current / Max)
-            if (slot.currentMpText != null)
-            {
-                slot.currentMpText.text = $"{data.currentMP}/{data.maxMP}";
-            }
-
-            if (slot.levelText != null) slot.levelText.text = $"{data.level}"; // 숫자만 표시
-            
-            // Class 표시 (직업이 없으면 "None" 표시)
-            if (slot.classText != null) 
-            {
-                string displayClass = string.IsNullOrEmpty(data.jobClass) ? "None" : data.jobClass;
-                slot.classText.text = displayClass;
-                Debug.Log($"[DungeonStatusView] Class Text 업데이트: '{displayClass}' (jobClass: '{data.jobClass}')");
+                slot.mpText.text = $"{maxMp}({mpBonus:+#;-#;0})";
             }
             else
             {
-                Debug.LogWarning("[DungeonStatusView] classText가 null입니다! Inspector에서 Class Text 필드에 TextMeshPro를 연결해주세요.");
+                slot.mpText.text = maxMp.ToString();
             }
-            
-            // Class Description / Icon Logic Removed as per user request (Only Class Name)
-            
-            if (slot.expText != null) slot.expText.text = $"{data.exp} / {data.maxExp}"; // EXP 표시
-            
-            // 상세 스탯 (STR, DEF, MAG, AGI, LUK) - 보정치와 함께 표시
-            if (slot.strText != null) 
-            {
-                int bonus = data.attack - data.baseAttack;
-                if (bonus != 0)
-                    slot.strText.text = $"{data.attack}({bonus:+#;-#;0})";
-                else
-                    slot.strText.text = $"{data.attack}";
-            }
-            
-            if (slot.defText != null) 
-            {
-                int bonus = data.defense - data.baseDefense;
-                if (bonus != 0)
-                    slot.defText.text = $"{data.defense}({bonus:+#;-#;0})";
-                else
-                    slot.defText.text = $"{data.defense}";
-            }
-            
-            if (slot.magText != null) 
-            {
-                int bonus = data.magic - data.baseMagic;
-                if (bonus != 0)
-                    slot.magText.text = $"{data.magic}({bonus:+#;-#;0})";
-                else
-                    slot.magText.text = $"{data.magic}";
-            }
-            
-            if (slot.agiText != null) 
-            {
-                int bonus = data.agility - data.baseAgility;
-                if (bonus != 0)
-                    slot.agiText.text = $"{data.agility}({bonus:+#;-#;0})";
-                else
-                    slot.agiText.text = $"{data.agility}";
-            }
-            
-            if (slot.lukText != null) 
-            {
-                int bonus = data.luck - data.baseLuck;
-                if (bonus != 0)
-                    slot.lukText.text = $"{data.luck}({bonus:+#;-#;0})";
-                else
-                    slot.lukText.text = $"{data.luck}";
-            }
-
-            index++;
         }
 
-        // 데이터가 없는 남은 슬롯은 비활성화
-        for (; index < slots.Count; index++)
+        // Current MP 표시 - 위에서 읽은 변수 사용
+        if (slot.currentMpText != null)
         {
-            if (slots[index].slotRoot != null) slots[index].slotRoot.SetActive(false);
-            else 
-            {
-                // Root가 할당 안 됐으면 텍스트라도 지움
-                if (slots[index].nameText != null) slots[index].nameText.text = "";
-                if (slots[index].mpText != null) slots[index].mpText.text = "";
-                if (slots[index].currentMpText != null) slots[index].currentMpText.text = ""; // Clear current MP
-                if (slots[index].levelText != null) slots[index].levelText.text = "";
-                if (slots[index].classText != null) slots[index].classText.text = "";
-                if (slots[index].expText != null) slots[index].expText.text = "";
-                if (slots[index].strText != null) slots[index].strText.text = "";
-                if (slots[index].defText != null) slots[index].defText.text = "";
-                if (slots[index].magText != null) slots[index].magText.text = "";
-                if (slots[index].agiText != null) slots[index].agiText.text = "";
-                if (slots[index].lukText != null) slots[index].lukText.text = "";
-            }
+            slot.currentMpText.text = $"{mp}/{maxMp}";
+            Debug.Log($"[DungeonStatusView] UI 업데이트: currentMpText = '{mp}/{maxMp}'");
+        }
+        else
+        {
+            Debug.LogWarning("[DungeonStatusView] currentMpText가 null입니다! Inspector에서 연결하세요.");
+        }
+
+        if (slot.levelText != null) slot.levelText.text = $"{playerInScene.level}";
+
+        // Class 표시
+        if (slot.classText != null)
+        {
+            string displayClass = string.IsNullOrEmpty(playerInScene.jobClass) ? "None" : playerInScene.jobClass;
+            slot.classText.text = displayClass;
+        }
+
+        if (slot.expText != null) slot.expText.text = $"{playerInScene.exp} / {playerInScene.maxExp}";
+
+        // 상세 스탯 - 보정치와 함께 표시
+        if (slot.strText != null)
+        {
+            int bonus = playerInScene.GetAttackBonus();
+            if (bonus != 0)
+                slot.strText.text = $"{playerInScene.Attack}({bonus:+#;-#;0})";
+            else
+                slot.strText.text = $"{playerInScene.Attack}";
+        }
+
+        if (slot.defText != null)
+        {
+            int bonus = playerInScene.GetDefenseBonus();
+            if (bonus != 0)
+                slot.defText.text = $"{playerInScene.Defense}({bonus:+#;-#;0})";
+            else
+                slot.defText.text = $"{playerInScene.Defense}";
+        }
+
+        if (slot.magText != null)
+        {
+            int bonus = playerInScene.GetMagicBonus();
+            if (bonus != 0)
+                slot.magText.text = $"{playerInScene.Magic}({bonus:+#;-#;0})";
+            else
+                slot.magText.text = $"{playerInScene.Magic}";
+        }
+
+        if (slot.agiText != null)
+        {
+            int bonus = playerInScene.GetAgilityBonus();
+            if (bonus != 0)
+                slot.agiText.text = $"{playerInScene.Agility}({bonus:+#;-#;0})";
+            else
+                slot.agiText.text = $"{playerInScene.Agility}";
+        }
+
+        if (slot.lukText != null)
+        {
+            int bonus = playerInScene.GetLuckBonus();
+            if (bonus != 0)
+                slot.lukText.text = $"{playerInScene.Luck}({bonus:+#;-#;0})";
+            else
+                slot.lukText.text = $"{playerInScene.Luck}";
+        }
+
+        // 남은 슬롯은 비활성화
+        for (int i = 1; i < slots.Count; i++)
+        {
+            if (slots[i].slotRoot != null) slots[i].slotRoot.SetActive(false);
         }
     }
 }

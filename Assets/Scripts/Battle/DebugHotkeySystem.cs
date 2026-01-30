@@ -35,7 +35,7 @@ public class DebugHotkeySystem : MonoBehaviour
     {
         if (battleManager == null)
         {
-            battleManager = Object.FindObjectOfType<BattleManager>();
+            battleManager = Object.FindFirstObjectByType<BattleManager>();
         }
     }
 
@@ -217,7 +217,7 @@ public class DebugHotkeySystem : MonoBehaviour
 
         if (battleManager == null)
         {
-            battleManager = Object.FindObjectOfType<BattleManager>();
+            battleManager = Object.FindFirstObjectByType<BattleManager>();
         }
 
         // BattleManager가 있으면 새 전투 시작 (EnemyDatabase를 통해 랜덤 적 소환)

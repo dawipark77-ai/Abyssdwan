@@ -11,7 +11,7 @@ public class SetupMinimapSystem : MonoBehaviour
     public void SetupSystem()
     {
         // 1. DungeonMinimap 오브젝트 찾기 또는 생성
-        DungeonMinimap minimap = FindObjectOfType<DungeonMinimap>();
+        DungeonMinimap minimap = FindFirstObjectByType<DungeonMinimap>();
         if (minimap == null)
         {
             GameObject minimapObj = new GameObject("DungeonMinimap");
@@ -26,15 +26,15 @@ public class SetupMinimapSystem : MonoBehaviour
         }
         
         // 3. DungeonEventManager 생성
-        DungeonEventManager eventManager = FindObjectOfType<DungeonEventManager>();
+        DungeonEventManager eventManager = FindFirstObjectByType<DungeonEventManager>();
         if (eventManager == null)
         {
             GameObject eventManagerObj = new GameObject("DungeonEventManager");
             eventManager = eventManagerObj.AddComponent<DungeonEventManager>();
         }
-        
+
         // 4. MinimapPlayerController 생성
-        MinimapPlayerController playerController = FindObjectOfType<MinimapPlayerController>();
+        MinimapPlayerController playerController = FindFirstObjectByType<MinimapPlayerController>();
         if (playerController == null)
         {
             GameObject playerObj = new GameObject("MinimapPlayerController");
@@ -66,7 +66,7 @@ public class SetupMinimapSystem : MonoBehaviour
         }
         
         // 7. UI Canvas 생성
-        Canvas canvas = FindObjectOfType<Canvas>();
+        Canvas canvas = FindFirstObjectByType<Canvas>();
         if (canvas == null)
         {
             GameObject canvasObj = new GameObject("Canvas");
