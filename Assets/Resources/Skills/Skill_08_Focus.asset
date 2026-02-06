@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e, type: 3}
+  m_Name: Skill_08_Focus
+  m_EditorClassIdentifier: Assembly-CSharp::AbyssdawnBattle.SkillData
+  skillID: 08
+  skillName: Focus
+  skillIcon: {fileID: -4115274655291430038, guid: bfa8fa2bb381ba34080fc3506d6ada0f, type: 3}
+  description: 
+  usageType: 1
+  damageType: 0
+  scalingStat: 0
+  hpCostPercent: 0
+  mpCost: 0
+  minMult: 1
+  maxMult: 1
+  hitCount: 1
+  selfDmgPercent: 0
+  selfDmgChance: 0
+  selfCurseData: {fileID: 0}
+  selfCurseChance: 0
+  effects:
+  - effectType: 13
+    recoveryTarget: 0
+    effectAmount: 0.3
+    curseData: {fileID: 0}
+    curseChance: 0
+  - effectType: 5
+    recoveryTarget: 0
+    effectAmount: 0.3
+    curseData: {fileID: 0}
+    curseChance: 0
+  legacyCurseData: {fileID: 0}
+  legacyCurseChance: 0
+  legacyEffectType: 0
+  legacyRecoveryTarget: 0
+  legacyEffectAmount: 0
+  triggerCondition: 0

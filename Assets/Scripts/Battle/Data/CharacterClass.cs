@@ -69,3 +69,12 @@ public class CharacterClass : ScriptableObject
 
 
 
+
+
+
+
+
+
+
+
+

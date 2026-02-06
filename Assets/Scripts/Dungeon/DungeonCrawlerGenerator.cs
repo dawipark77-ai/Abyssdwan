@@ -1,10 +1,8 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 
 /// <summary>
-/// 1인칭 던전 크롤러용 던전 생성기
-/// 3D로 만들고 2D 스타일로 렌더링
-/// </summary>
+/// 1?몄묶 ?섏쟾 ?щ·?ъ슜 ?섏쟾 ?앹꽦湲?/// 3D濡?留뚮뱾怨?2D ?ㅽ??쇰줈 ?뚮뜑留?/// </summary>
 public class DungeonCrawlerGenerator : MonoBehaviour
 {
     [Header("Dungeon Settings")]
@@ -12,7 +10,7 @@ public class DungeonCrawlerGenerator : MonoBehaviour
     public float corridorWidth = 4f;
     public float corridorHeight = 4f;
     public float wallThickness = 0.5f;
-    public float archSpacing = 4f; // 아치 간격
+    public float archSpacing = 4f; // ?꾩튂 媛꾧꺽
     
     [Header("Materials")]
     public Material wallMaterial;
@@ -27,7 +25,7 @@ public class DungeonCrawlerGenerator : MonoBehaviour
     public float decorationDensity = 0.4f;
     
     [Header("Lighting")]
-    public Color torchLightColor = new Color(0.3f, 0.6f, 1f); // 푸른 불꽃
+    public Color torchLightColor = new Color(0.3f, 0.6f, 1f); // ?몃Ⅸ 遺덇퐙
     public float torchLightIntensity = 2.5f;
     public float torchLightRange = 8f;
     
@@ -35,7 +33,7 @@ public class DungeonCrawlerGenerator : MonoBehaviour
     
     void Start()
     {
-        // 자동 생성 비활성화 (스프라이트 기반 던전 사용)
+        // ?먮룞 ?앹꽦 鍮꾪솢?깊솕 (?ㅽ봽?쇱씠??湲곕컲 ?섏쟾 ?ъ슜)
         // GenerateDungeon();
     }
     
@@ -53,16 +51,15 @@ public class DungeonCrawlerGenerator : MonoBehaviour
         GameObject dungeonRoot = new GameObject("Dungeon");
         dungeonRoot.transform.SetParent(transform);
         
-        // 바닥
+        // 諛붾떏
         CreateFloor(dungeonRoot.transform);
         
-        // 벽
-        CreateWalls(dungeonRoot.transform);
+        // 踰?        CreateWalls(dungeonRoot.transform);
         
-        // 천장
+        // 泥쒖옣
         CreateCeiling(dungeonRoot.transform);
         
-        // 아치형 문들
+        // ?꾩튂??臾몃뱾
         CreateArches(dungeonRoot.transform);
     }
     
@@ -88,7 +85,7 @@ public class DungeonCrawlerGenerator : MonoBehaviour
     
     void CreateWalls(Transform parent)
     {
-        // 왼쪽 벽
+        // ?쇱そ 踰?
         GameObject leftWall = GameObject.CreatePrimitive(PrimitiveType.Cube);
         leftWall.name = "LeftWall";
         leftWall.transform.SetParent(parent);
@@ -106,7 +103,7 @@ public class DungeonCrawlerGenerator : MonoBehaviour
         
         dungeonObjects.Add(leftWall);
         
-        // 오른쪽 벽
+        // ?ㅻⅨ履?踰?
         GameObject rightWall = GameObject.CreatePrimitive(PrimitiveType.Cube);
         rightWall.name = "RightWall";
         rightWall.transform.SetParent(parent);
@@ -132,7 +129,7 @@ public class DungeonCrawlerGenerator : MonoBehaviour
         {
             float zPos = i * archSpacing;
             
-            // 아치 상단 (간단한 박스로 표현)
+            // ?꾩튂 ?곷떒 (媛꾨떒??諛뺤뒪濡??쒗쁽)
             GameObject archTop = GameObject.CreatePrimitive(PrimitiveType.Cube);
             archTop.name = $"ArchTop_{i}";
             archTop.transform.SetParent(parent);
@@ -174,32 +171,32 @@ public class DungeonCrawlerGenerator : MonoBehaviour
     
     void AddDecorations()
     {
-        // 화로 배치 (왼쪽 벽 근처)
+        // ?붾줈 諛곗튂 (?쇱そ 踰?洹쇱쿂)
         for (float z = 2f; z < corridorLength - 2f; z += torchSpacing)
         {
             CreateTorch(new Vector3(-corridorWidth / 2 + 0.6f, -corridorHeight / 2 + 0.4f, z));
         }
         
-        // 해골/뼈 장식 (랜덤 배치)
+        // ?닿낏/堉??μ떇 (?쒕뜡 諛곗튂)
         for (int i = 0; i < corridorLength * decorationDensity; i++)
         {
-            if (Random.value < 0.6f)
+            if (UnityEngine.Random.value < 0.6f)
             {
                 CreateSkeleton(new Vector3(
-                    Random.Range(-corridorWidth / 2 + 0.5f, corridorWidth / 2 - 0.5f),
+                    UnityEngine.Random.Range(-corridorWidth / 2 + 0.5f, corridorWidth / 2 - 0.5f),
                     -corridorHeight / 2 + 0.1f,
-                    Random.Range(1f, corridorLength - 1f)
+                    UnityEngine.Random.Range(1f, corridorLength - 1f)
                 ));
             }
         }
         
-        // 도자기 조각 배치
+        // ?꾩옄湲?議곌컖 諛곗튂
         for (int i = 0; i < corridorLength * decorationDensity * 0.3f; i++)
         {
             CreatePottery(new Vector3(
-                Random.Range(-corridorWidth / 2 + 0.5f, corridorWidth / 2 - 0.5f),
+                UnityEngine.Random.Range(-corridorWidth / 2 + 0.5f, corridorWidth / 2 - 0.5f),
                 -corridorHeight / 2 + 0.1f,
-                Random.Range(1f, corridorLength - 1f)
+                UnityEngine.Random.Range(1f, corridorLength - 1f)
             ));
         }
     }
@@ -214,18 +211,18 @@ public class DungeonCrawlerGenerator : MonoBehaviour
         }
         else
         {
-            // 기본 화로 생성
+            // 湲곕낯 ?붾줈 ?앹꽦
             torch = new GameObject("Torch");
             torch.transform.position = position;
             
-            // 화로 받침대
+            // ?붾줈 諛쏆묠?
             GameObject torchBase = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             torchBase.transform.SetParent(torch.transform);
             torchBase.transform.localPosition = Vector3.zero;
             torchBase.transform.localScale = new Vector3(0.4f, 0.25f, 0.4f);
             SetDefaultMaterial(torchBase, new Color(0.2f, 0.15f, 0.1f));
             
-            // 불꽃 (스프라이트 또는 파티클)
+            // 遺덇퐙 (?ㅽ봽?쇱씠???먮뒗 ?뚰떚??
             GameObject flame = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             flame.transform.SetParent(torch.transform);
             flame.transform.localPosition = new Vector3(0, 0.4f, 0);
@@ -239,7 +236,7 @@ public class DungeonCrawlerGenerator : MonoBehaviour
             flame.GetComponent<Renderer>().material = flameMat;
         }
         
-        // 조명 추가
+        // 議곕챸 異붽?
         Light torchLight = torch.AddComponent<Light>();
         torchLight.type = LightType.Point;
         torchLight.color = torchLightColor;
@@ -257,37 +254,37 @@ public class DungeonCrawlerGenerator : MonoBehaviour
         
         if (skeletonPrefab != null)
         {
-            skeleton = Instantiate(skeletonPrefab, position, Quaternion.Euler(0, Random.Range(0, 360), 0));
+            skeleton = Instantiate(skeletonPrefab, position, Quaternion.Euler(0, UnityEngine.Random.Range(0, 360), 0));
         }
         else
         {
-            // 간단한 해골 표현
+            // 媛꾨떒???닿낏 ?쒗쁽
             skeleton = new GameObject("Skeleton");
             skeleton.transform.position = position;
-            skeleton.transform.rotation = Quaternion.Euler(0, Random.Range(0, 360), 0);
+            skeleton.transform.rotation = Quaternion.Euler(0, UnityEngine.Random.Range(0, 360), 0);
             
-            // 해골 머리
+            // ?닿낏 癒몃━
             GameObject head = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             head.transform.SetParent(skeleton.transform);
             head.transform.localPosition = new Vector3(0, 0.15f, 0);
             head.transform.localScale = new Vector3(0.25f, 0.25f, 0.25f);
             SetDefaultMaterial(head, Color.white);
             
-            // 뼈 조각들 (여러 개)
+            // 堉?議곌컖??(?щ윭 媛?
             for (int i = 0; i < 4; i++)
             {
                 GameObject bone = GameObject.CreatePrimitive(PrimitiveType.Cube);
                 bone.transform.SetParent(skeleton.transform);
                 bone.transform.localPosition = new Vector3(
-                    Random.Range(-0.3f, 0.3f), 
+                    UnityEngine.Random.Range(-0.3f, 0.3f), 
                     -0.1f, 
-                    Random.Range(-0.3f, 0.3f)
+                    UnityEngine.Random.Range(-0.3f, 0.3f)
                 );
-                bone.transform.localScale = new Vector3(0.1f, Random.Range(0.2f, 0.4f), 0.1f);
+                bone.transform.localScale = new Vector3(0.1f, UnityEngine.Random.Range(0.2f, 0.4f), 0.1f);
                 bone.transform.localRotation = Quaternion.Euler(
-                    Random.Range(0, 360), 
-                    Random.Range(0, 360), 
-                    Random.Range(0, 360)
+                    UnityEngine.Random.Range(0, 360), 
+                    UnityEngine.Random.Range(0, 360), 
+                    UnityEngine.Random.Range(0, 360)
                 );
                 SetDefaultMaterial(bone, Color.white);
             }
@@ -303,39 +300,39 @@ public class DungeonCrawlerGenerator : MonoBehaviour
         
         if (potteryPrefab != null)
         {
-            pottery = Instantiate(potteryPrefab, position, Quaternion.Euler(0, Random.Range(0, 360), 0));
+            pottery = Instantiate(potteryPrefab, position, Quaternion.Euler(0, UnityEngine.Random.Range(0, 360), 0));
         }
         else
         {
-            // 간단한 도자기 표현
+            // 媛꾨떒???꾩옄湲??쒗쁽
             pottery = new GameObject("Pottery");
             pottery.transform.position = position;
-            pottery.transform.rotation = Quaternion.Euler(0, Random.Range(0, 360), 0);
+            pottery.transform.rotation = Quaternion.Euler(0, UnityEngine.Random.Range(0, 360), 0);
             
-            // 도자기 몸체
+            // ?꾩옄湲?紐몄껜
             GameObject body = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             body.transform.SetParent(pottery.transform);
             body.transform.localPosition = Vector3.zero;
             body.transform.localScale = new Vector3(0.2f, 0.15f, 0.2f);
             SetDefaultMaterial(body, new Color(0.4f, 0.25f, 0.15f));
             
-            // 깨진 조각 (일부는)
-            if (Random.value < 0.5f)
+            // 源⑥쭊 議곌컖 (?쇰???
+            if (UnityEngine.Random.value < 0.5f)
             {
-                for (int i = 0; i < Random.Range(2, 4); i++)
+                for (int i = 0; i < UnityEngine.Random.Range(2, 4); i++)
                 {
                     GameObject fragment = GameObject.CreatePrimitive(PrimitiveType.Cube);
                     fragment.transform.SetParent(pottery.transform);
                     fragment.transform.localPosition = new Vector3(
-                        Random.Range(-0.15f, 0.15f),
+                        UnityEngine.Random.Range(-0.15f, 0.15f),
                         -0.1f,
-                        Random.Range(-0.15f, 0.15f)
+                        UnityEngine.Random.Range(-0.15f, 0.15f)
                     );
                     fragment.transform.localScale = new Vector3(0.08f, 0.05f, 0.08f);
                     fragment.transform.localRotation = Quaternion.Euler(
-                        Random.Range(0, 360),
-                        Random.Range(0, 360),
-                        Random.Range(0, 360)
+                        UnityEngine.Random.Range(0, 360),
+                        UnityEngine.Random.Range(0, 360),
+                        UnityEngine.Random.Range(0, 360)
                     );
                     SetDefaultMaterial(fragment, new Color(0.4f, 0.25f, 0.15f));
                 }
@@ -348,18 +345,18 @@ public class DungeonCrawlerGenerator : MonoBehaviour
     
     void SetupLighting()
     {
-        // 환경 조명 설정 (더 밝게)
+        // ?섍꼍 議곕챸 ?ㅼ젙 (??諛앷쾶)
         RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Trilight;
         RenderSettings.ambientSkyColor = new Color(0.15f, 0.15f, 0.2f);
         RenderSettings.ambientEquatorColor = new Color(0.1f, 0.1f, 0.15f);
         RenderSettings.ambientGroundColor = new Color(0.05f, 0.05f, 0.1f);
-        RenderSettings.ambientIntensity = 0.5f; // 더 밝게
+        RenderSettings.ambientIntensity = 0.5f; // ??諛앷쾶
         
-        // 안개 효과
+        // ?덇컻 ?④낵
         RenderSettings.fog = true;
         RenderSettings.fogColor = new Color(0.05f, 0.05f, 0.1f);
         RenderSettings.fogMode = FogMode.ExponentialSquared;
-        RenderSettings.fogDensity = 0.015f; // 약간 줄임
+        RenderSettings.fogDensity = 0.015f; // ?쎄컙 以꾩엫
     }
     
     void SetDefaultMaterial(GameObject obj, Color color)
@@ -369,14 +366,14 @@ public class DungeonCrawlerGenerator : MonoBehaviour
         mat.SetFloat("_Metallic", 0.1f);
         mat.SetFloat("_Glossiness", 0.2f);
         
-        // 2D 스타일을 위한 텍스처 설정
-        // 메인 텍스처가 있으면 Point 필터 적용
+        // 2D ?ㅽ??쇱쓣 ?꾪븳 ?띿뒪泥??ㅼ젙
+        // 硫붿씤 ?띿뒪泥섍? ?덉쑝硫?Point ?꾪꽣 ?곸슜
         if (mat.mainTexture != null)
         {
             Texture2D tex = mat.mainTexture as Texture2D;
             if (tex != null)
             {
-                tex.filterMode = FilterMode.Point; // 픽셀 아트 스타일
+                tex.filterMode = FilterMode.Point; // ?쎌? ?꾪듃 ?ㅽ???
             }
         }
         
@@ -400,5 +397,7 @@ public class DungeonCrawlerGenerator : MonoBehaviour
         ClearDungeon();
     }
 }
+
+
 
 

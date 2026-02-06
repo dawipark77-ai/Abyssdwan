@@ -26,15 +26,15 @@ public class DungeonGenerator : MonoBehaviour
         rooms[startRoom] = new DungeonRoom(startRoom);
         generatedRooms.Add(startRoom);
         roomList.Add(startRoom);
-        int targetRoomCount = Random.Range(minRooms, maxRooms + 1);
+        int targetRoomCount = UnityEngine.Random.Range(minRooms, maxRooms + 1);
         int attempts = 0;
         int maxAttempts = 1000;
         while (roomList.Count < targetRoomCount && attempts < maxAttempts)
         {
             attempts++;
-            Vector2Int currentRoom = roomList[Random.Range(0, roomList.Count)];
+            Vector2Int currentRoom = roomList[UnityEngine.Random.Range(0, roomList.Count)];
             Vector2Int[] directions = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
-            Vector2Int direction = directions[Random.Range(0, directions.Length)];
+            Vector2Int direction = directions[UnityEngine.Random.Range(0, directions.Length)];
             Vector2Int newRoomPos = currentRoom + direction;
             if (newRoomPos.x < 0 || newRoomPos.x >= width || newRoomPos.y < 0 || newRoomPos.y >= height)
             {
@@ -99,3 +99,5 @@ public class DungeonGenerator : MonoBehaviour
         return IsWalkable(new Vector2Int(x, y));
     }
 }
+
+

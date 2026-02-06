@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Tilemaps;
 using System.Collections.Generic;
 
@@ -12,14 +12,13 @@ public class MapManager : MonoBehaviour
     public TileBase floorTile;
     public TileBase wallTile;
     public TileBase fogTile;
-    public TileBase stairsTile; // 다음 층으로 내려가는 계단
-    public TileBase exitHighlightTile; // 출구 색상 전용(밝은 타일 권장)
+    public TileBase stairsTile; // ?ㅼ쓬 痢듭쑝濡??대젮媛??怨꾨떒
+    public TileBase exitHighlightTile; // 異쒓뎄 ?됱긽 ?꾩슜(諛앹? ???沅뚯옣)
     [Header("Exit Highlight")]
     public bool highlightExit = true;
     public Color exitColor = Color.red;
-    public bool alwaysRevealExit = false; // 기본은 안개에 가리되, 켜면 항상 보이게
-    public Vector2Int ExitPos => exitPos; // 외부에서 출구 좌표 확인용
-
+    public bool alwaysRevealExit = false; // 湲곕낯? ?덇컻??媛由щ릺, 耳쒕㈃ ??긽 蹂댁씠寃?
+    public Vector2Int ExitPos => exitPos; // ?몃??먯꽌 異쒓뎄 醫뚰몴 ?뺤씤??
     [Header("Map Size Settings")]
     public int minWidth = 30;
     public int maxWidth = 30;
@@ -40,16 +39,16 @@ public class MapManager : MonoBehaviour
     public int maxRoomCount = 5;
     public int minRoomSize = 3;
     public int maxRoomSize = 5;
-    public int roomSpacing = 2; // 방 사이 최소 간격
+    public int roomSpacing = 2; // 諛??ъ씠 理쒖냼 媛꾧꺽
     
     [Range(0f, 1f)]
-    public float sealedRoomChance = 0.3f; // 일반 방이 닫힌 방이 될 확률
+    public float sealedRoomChance = 0.3f; // ?쇰컲 諛⑹씠 ?ロ엺 諛⑹씠 ???뺣쪧
 
     int[,] mapData;
-    bool[,] isRoom; // 방의 바닥과 벽을 보호하기 위한 배열
-    List<RoomInfo> rooms = new List<RoomInfo>(); // 생성된 방들 저장
+    bool[,] isRoom; // 諛⑹쓽 諛붾떏怨?踰쎌쓣 蹂댄샇?섍린 ?꾪븳 諛곗뿴
+    List<RoomInfo> rooms = new List<RoomInfo>(); // ?앹꽦??諛⑸뱾 ???
     Vector2Int startPos; // Store start position
-    Vector2Int exitPos;  // 다음 층으로 내려가는 위치
+    Vector2Int exitPos;  // ?ㅼ쓬 痢듭쑝濡??대젮媛???꾩튂
 
     void Start()
     {
@@ -60,7 +59,7 @@ public class MapManager : MonoBehaviour
             Debug.Log($"[MapManager] Current Floor: B{DungeonPersistentData.currentFloor}");
             if (!DungeonPersistentData.hasSavedState)
             {
-                DungeonPersistentData.currentSeed = Random.Range(int.MinValue, int.MaxValue);
+                DungeonPersistentData.currentSeed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
                 DungeonPersistentData.revealedTiles.Clear();
                 Debug.Log($"[MapManager] New Seed generated: {DungeonPersistentData.currentSeed}. Fog cleared.");
             }
@@ -83,14 +82,13 @@ public class MapManager : MonoBehaviour
         catch (System.Exception ex)
         {
             Debug.LogError($"[MapManager] CRITICAL ERROR in Start(): {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
-            // 예외가 발생해도 게임이 계속 실행되도록 함
-            // 최소한의 맵이라도 생성 시도
+            // ?덉쇅媛 諛쒖깮?대룄 寃뚯엫??怨꾩냽 ?ㅽ뻾?섎룄濡???            // 理쒖냼?쒖쓽 留듭씠?쇰룄 ?앹꽦 ?쒕룄
             try
             {
                 if (floorTilemap != null && wallTilemap != null)
                 {
                     Debug.LogWarning("[MapManager] Attempting emergency map generation...");
-                    // 최소한의 안전한 맵 생성
+                    // 理쒖냼?쒖쓽 ?덉쟾??留??앹꽦
                     if (width <= 0 || height <= 0)
                     {
                         width = 10;
@@ -118,7 +116,7 @@ public class MapManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 계단 도달 시 다음 층(B1, B2 ...)을 생성
+    /// 怨꾨떒 ?꾨떖 ???ㅼ쓬 痢?B1, B2 ...)???앹꽦
     /// </summary>
     public void GenerateNextFloor()
     {
@@ -127,16 +125,16 @@ public class MapManager : MonoBehaviour
         DungeonPersistentData.revealedTiles.Clear();
         DungeonPersistentData.lastPlayerGridPos = Vector2Int.zero;
         DungeonPersistentData.lastPlayerFacing = DungeonDirection.North;
-        DungeonPersistentData.currentSeed = Random.Range(int.MinValue, int.MaxValue);
+        DungeonPersistentData.currentSeed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
 
-        // 벽선 라인도 초기화
+        // 踰쎌꽑 ?쇱씤??珥덇린??
         Genesis01.Dungeon.DungeonWallLineDrawer drawer = FindFirstObjectByType<Genesis01.Dungeon.DungeonWallLineDrawer>();
         if (drawer != null)
         {
             drawer.ResetLines();
         }
 
-        // 타일맵/플레이어 상태를 완전히 초기화하여 이전 층 정보가 남지 않게 함
+        // ??쇰㏊/?뚮젅?댁뼱 ?곹깭瑜??꾩쟾??珥덇린?뷀븯???댁쟾 痢??뺣낫媛 ?⑥? ?딄쾶 ??
         if (fogTilemap != null) fogTilemap.ClearAllTiles();
         if (floorTilemap != null) floorTilemap.ClearAllTiles();
         if (wallTilemap != null) wallTilemap.ClearAllTiles();
@@ -154,7 +152,7 @@ public class MapManager : MonoBehaviour
         DrawMap();
         PlacePlayer();
 
-        // 새 맵 기반으로 벽선 재생성
+        // ??留?湲곕컲?쇰줈 踰쎌꽑 ?ъ깮??
         if (drawer != null)
         {
             drawer.DrawWalls();
@@ -164,10 +162,10 @@ public class MapManager : MonoBehaviour
 
     void GenerateMaze()
     {
-        Random.InitState(DungeonPersistentData.currentSeed);
+        UnityEngine.Random.InitState(DungeonPersistentData.currentSeed);
         
-        width = Random.Range(minWidth, maxWidth + 1);
-        height = Random.Range(minHeight, maxHeight + 1);
+        width = UnityEngine.Random.Range(minWidth, maxWidth + 1);
+        height = UnityEngine.Random.Range(minHeight, maxHeight + 1);
         mapData = new int[height, width];
         isRoom = new bool[height, width];
 
@@ -182,19 +180,19 @@ public class MapManager : MonoBehaviour
             }
         }
 
-        // 2. 방 생성
+        // 2. 諛??앹꽦
         Debug.Log("[MapManager] Step 2: Generating rooms...");
         GenerateRooms();
         
-        // 3. 방들 연결
+        // 3. 諛⑸뱾 ?곌껐
         Debug.Log("[MapManager] Step 3: Connecting rooms...");
         ConnectRooms();
 
-        // 4. 나머지 공간에 미로 생성 (방과 통로와 연결되도록)
+        // 4. ?섎㉧吏 怨듦컙??誘몃줈 ?앹꽦 (諛⑷낵 ?듬줈? ?곌껐?섎룄濡?
         Debug.Log("[MapManager] Step 4: Generating maze connections...");
         GenerateMazeConnections();
 
-        // 5. 시작 위치 설정 (첫 번째 방의 중심)
+        // 5. ?쒖옉 ?꾩튂 ?ㅼ젙 (泥?踰덉㎏ 諛⑹쓽 以묒떖)
         if (rooms.Count > 0)
         {
             var firstRoom = rooms[0];
@@ -205,7 +203,7 @@ public class MapManager : MonoBehaviour
         }
         else
         {
-            // 방이 없으면 기존 로직 사용
+            // 諛⑹씠 ?놁쑝硫?湲곗〈 濡쒖쭅 ?ъ슜
             startPos = new Vector2Int(width / 2, height / 2);
             if (startPos.x % 2 == 0) startPos.x++;
             if (startPos.y % 2 == 0) startPos.y++;
@@ -216,7 +214,7 @@ public class MapManager : MonoBehaviour
             Carve(startPos.x, startPos.y);
         }
 
-        // 6. 출구(다음 층) 위치 선정: 시작점에서 가장 먼 길(0) 셀
+        // 6. 異쒓뎄(?ㅼ쓬 痢? ?꾩튂 ?좎젙: ?쒖옉?먯뿉??媛??癒?湲?0) ?
         exitPos = FindFarthestFloorCell(startPos);
         Debug.Log($"[MapManager] Start at {startPos}, Exit at {exitPos}");
     }
@@ -224,58 +222,57 @@ public class MapManager : MonoBehaviour
     void GenerateRooms()
     {
         rooms.Clear();
-        int roomCount = Random.Range(minRoomCount, maxRoomCount + 1);
+        int roomCount = UnityEngine.Random.Range(minRoomCount, maxRoomCount + 1);
         int attempts = 0;
-        int targetSpecialRoomCount = Mathf.Max(1, Random.Range(minSpecialRoomCount, maxSpecialRoomCount + 1));
+        int targetSpecialRoomCount = Mathf.Max(1, UnityEngine.Random.Range(minSpecialRoomCount, maxSpecialRoomCount + 1));
         int specialRoomCreatedCount = 0;
-        int maxAttempts = 500; // 시도 횟수를 대폭 늘림
+        int maxAttempts = 500; // ?쒕룄 ?잛닔瑜?????섎┝
 
         for (int i = 0; i < roomCount && attempts < maxAttempts; attempts++)
         {
-            // 랜덤 방 크기
-            int roomWidth = Random.Range(minRoomSize, maxRoomSize + 1);
-            int roomHeight = Random.Range(minRoomSize, maxRoomSize + 1);
+            // ?쒕뜡 諛??ш린
+            int roomWidth = UnityEngine.Random.Range(minRoomSize, maxRoomSize + 1);
+            int roomHeight = UnityEngine.Random.Range(minRoomSize, maxRoomSize + 1);
 
-            // 랜덤 위치 (경계 고려)
-            // 홀수 좌표를 사용하여 미로 그리드와 일치시킴 (중요!)
-            // 범위 체크 추가: 최소값이 최대값보다 작아야 함
-            // x + roomWidth <= width, y + roomHeight <= height 보장 필요
-            int maxX = width - roomWidth - 1; // x + roomWidth가 width를 넘지 않도록
-            int maxY = height - roomHeight - 1; // y + roomHeight가 height를 넘지 않도록
-            
+            // ?쒕뜡 ?꾩튂 (寃쎄퀎 怨좊젮)
+            // ???醫뚰몴瑜??ъ슜?섏뿬 誘몃줈 洹몃━?쒖? ?쇱튂?쒗궡 (以묒슂!)
+            // 踰붿쐞 泥댄겕 異붽?: 理쒖냼媛믪씠 理쒕?媛믩낫???묒븘????
+            // x + roomWidth <= width, y + roomHeight <= height 蹂댁옣 ?꾩슂
+            int maxX = width - roomWidth - 1; // x + roomWidth媛 width瑜??섏? ?딅룄濡?
+            int maxY = height - roomHeight - 1; // y + roomHeight媛 height瑜??섏? ?딅룄濡?
             if (maxX < 1 || maxY < 1)
             {
-                Debug.LogWarning($"[MapManager] 맵 크기가 너무 작거나 방이 너무 큼. width={width}, height={height}, roomWidth={roomWidth}, roomHeight={roomHeight}");
-                break; // 더 이상 방을 생성할 수 없음
+                Debug.LogWarning($"[MapManager] 留??ш린媛 ?덈Т ?묎굅??諛⑹씠 ?덈Т ?? width={width}, height={height}, roomWidth={roomWidth}, roomHeight={roomHeight}");
+                break; // ???댁긽 諛⑹쓣 ?앹꽦?????놁쓬
             }
             
-            // 홀수 좌표로 제한하면서 범위 내에 있도록
+            // ???醫뚰몴濡??쒗븳?섎㈃??踰붿쐞 ?댁뿉 ?덈룄濡?
             int maxXRange = maxX / 2;
             int maxYRange = maxY / 2;
             
             if (maxXRange < 1 || maxYRange < 1)
             {
-                Debug.LogWarning($"[MapManager] 홀수 좌표 제약으로 인해 방을 생성할 수 없음. maxX={maxX}, maxY={maxY}");
+                Debug.LogWarning($"[MapManager] ???醫뚰몴 ?쒖빟?쇰줈 ?명빐 諛⑹쓣 ?앹꽦?????놁쓬. maxX={maxX}, maxY={maxY}");
                 break;
             }
             
-            int x = Random.Range(1, maxXRange + 1) * 2 + 1;
-            int y = Random.Range(1, maxYRange + 1) * 2 + 1;
+            int x = UnityEngine.Random.Range(1, maxXRange + 1) * 2 + 1;
+            int y = UnityEngine.Random.Range(1, maxYRange + 1) * 2 + 1;
             
-            // 최종 범위 체크 (안전장치)
+            // 理쒖쥌 踰붿쐞 泥댄겕 (?덉쟾?μ튂)
             if (x + roomWidth > width || y + roomHeight > height)
             {
-                Debug.LogWarning($"[MapManager] 계산된 방 위치가 범위를 벗어남. x={x}, y={y}, roomWidth={roomWidth}, roomHeight={roomHeight}, width={width}, height={height}");
-                continue; // 이번 시도는 건너뛰고 다시 시도
+                Debug.LogWarning($"[MapManager] 怨꾩궛??諛??꾩튂媛 踰붿쐞瑜?踰쀬뼱?? x={x}, y={y}, roomWidth={roomWidth}, roomHeight={roomHeight}, width={width}, height={height}");
+                continue; // ?대쾲 ?쒕룄??嫄대꼫?곌퀬 ?ㅼ떆 ?쒕룄
             }
 
             RectInt newRoomRect = new RectInt(x, y, roomWidth, roomHeight);
 
-            // 기존 방과 겹치는지 체크
+            // 湲곗〈 諛⑷낵 寃뱀튂?붿? 泥댄겕
             bool overlaps = false;
             foreach (var room in rooms)
             {
-                // 간격을 고려한 확장된 영역 체크
+                // 媛꾧꺽??怨좊젮???뺤옣???곸뿭 泥댄겕
                 RectInt expanded = new RectInt(
                     room.rect.x - roomSpacing,
                     room.rect.y - roomSpacing,
@@ -290,10 +287,10 @@ public class MapManager : MonoBehaviour
                 }
             }
 
-            // 겹치지 않으면 추가
+            // 寃뱀튂吏 ?딆쑝硫?異붽?
             if (!overlaps)
             {
-                // 특수 방(봉인된 방)을 우선적으로 생성, 나머지는 확률에 따라 결정
+                // ?뱀닔 諛?遊됱씤??諛????곗꽑?곸쑝濡??앹꽦, ?섎㉧吏???뺣쪧???곕씪 寃곗젙
                 bool isSealed = false;
                 if (specialRoomCreatedCount < targetSpecialRoomCount)
                 {
@@ -302,32 +299,32 @@ public class MapManager : MonoBehaviour
                 }
                 else
                 {
-                    isSealed = Random.value < sealedRoomChance;
+                    isSealed = UnityEngine.Random.value < sealedRoomChance;
                 }
 
                 RoomInfo newRoom = new RoomInfo(newRoomRect, isSealed);
 
-                // 방 내부를 길(0)로 만들고 보호 구역으로 설정
-                // 경계 체크 추가: 배열 범위를 벗어나지 않도록
+                // 諛??대?瑜?湲?0)濡?留뚮뱾怨?蹂댄샇 援ъ뿭?쇰줈 ?ㅼ젙
+                // 寃쎄퀎 泥댄겕 異붽?: 諛곗뿴 踰붿쐞瑜?踰쀬뼱?섏? ?딅룄濡?
                 for (int ry = newRoom.rect.y; ry < newRoom.rect.y + newRoom.rect.height; ry++)
                 {
-                    if (ry < 0 || ry >= height) continue; // y 범위 체크
+                    if (ry < 0 || ry >= height) continue; // y 踰붿쐞 泥댄겕
                     for (int rx = newRoom.rect.x; rx < newRoom.rect.x + newRoom.rect.width; rx++)
                     {
-                        if (rx < 0 || rx >= width) continue; // x 범위 체크
+                        if (rx < 0 || rx >= width) continue; // x 踰붿쐞 泥댄겕
                         mapData[ry, rx] = 0;
                         isRoom[ry, rx] = true;
                     }
                 }
 
-                // 완전히 닫힌 방인 경우: 방 주변을 벽으로 둘러싸고 문 하나만 만들기
+                // ?꾩쟾???ロ엺 諛⑹씤 寃쎌슦: 諛?二쇰???踰쎌쑝濡??섎윭?멸퀬 臾??섎굹留?留뚮뱾湲?
                 if (isSealed)
                 {
                     CreateSealedRoom(newRoom);
                 }
 
                 rooms.Add(newRoom);
-                i++; // 성공한 방 개수 증가
+                i++; // ?깃났??諛?媛쒖닔 利앷?
             }
         }
 
@@ -336,13 +333,13 @@ public class MapManager : MonoBehaviour
         {
             if (room.isSealed) sealedCount++;
         }
-        Debug.Log($"생성된 방 개수: {rooms.Count} (일반: {rooms.Count - sealedCount}개, 닫힌 방: {sealedCount}개)");
+        Debug.Log($"?앹꽦??諛?媛쒖닔: {rooms.Count} (?쇰컲: {rooms.Count - sealedCount}媛? ?ロ엺 諛? {sealedCount}媛?)");
     }
 
     void CreateSealedRoom(RoomInfo room)
     {
-        // 방 주변을 벽으로 둘러싸고 보호 구역으로 설정
-        // 북쪽 벽
+        // 諛?二쇰???踰쎌쑝濡??섎윭?멸퀬 蹂댄샇 援ъ뿭?쇰줈 ?ㅼ젙
+        // 遺곸そ 踰?
         for (int x = room.rect.x - 1; x <= room.rect.x + room.rect.width; x++)
         {
             if (x >= 0 && x < width && room.rect.y - 1 >= 0 && room.rect.y - 1 < height)
@@ -351,7 +348,7 @@ public class MapManager : MonoBehaviour
                 isRoom[room.rect.y - 1, x] = true;
             }
         }
-        // 남쪽 벽
+        // ?⑥そ 踰?
         for (int x = room.rect.x - 1; x <= room.rect.x + room.rect.width; x++)
         {
             if (x >= 0 && x < width && room.rect.y + room.rect.height >= 0 && room.rect.y + room.rect.height < height)
@@ -360,7 +357,7 @@ public class MapManager : MonoBehaviour
                 isRoom[room.rect.y + room.rect.height, x] = true;
             }
         }
-        // 서쪽 벽
+        // ?쒖そ 踰?
         for (int y = room.rect.y - 1; y <= room.rect.y + room.rect.height; y++)
         {
             if (room.rect.x - 1 >= 0 && room.rect.x - 1 < width && y >= 0 && y < height)
@@ -369,7 +366,7 @@ public class MapManager : MonoBehaviour
                 isRoom[y, room.rect.x - 1] = true;
             }
         }
-        // 동쪽 벽
+        // ?숈そ 踰?
         for (int y = room.rect.y - 1; y <= room.rect.y + room.rect.height; y++)
         {
             if (room.rect.x + room.rect.width >= 0 && room.rect.x + room.rect.width < width && y >= 0 && y < height)
@@ -379,90 +376,88 @@ public class MapManager : MonoBehaviour
             }
         }
 
-        // 문 하나 만들기 (랜덤한 한 면에)
-        // 0: 북, 1: 동, 2: 남, 3: 서
-        // 범위 내에 있는 면만 선택하도록 시도
+        // 臾??섎굹 留뚮뱾湲?(?쒕뜡????硫댁뿉)
+        // 0: 遺? 1: ?? 2: ?? 3: ??        // 踰붿쐞 ?댁뿉 ?덈뒗 硫대쭔 ?좏깮?섎룄濡??쒕룄
         List<int> validSides = new List<int>();
-        if (room.rect.y > 0) validSides.Add(0); // 북쪽 가능
-        if (room.rect.x + room.rect.width < width) validSides.Add(1); // 동쪽 가능
-        if (room.rect.y + room.rect.height < height) validSides.Add(2); // 남쪽 가능
-        if (room.rect.x > 0) validSides.Add(3); // 서쪽 가능
-        
+        if (room.rect.y > 0) validSides.Add(0); // 遺곸そ 媛??
+        if (room.rect.x + room.rect.width < width) validSides.Add(1); // ?숈そ 媛??
+        if (room.rect.y + room.rect.height < height) validSides.Add(2); // ?⑥そ 媛??
+        if (room.rect.x > 0) validSides.Add(3); // ?쒖そ 媛??
         if (validSides.Count == 0)
         {
-            Debug.LogWarning($"[MapManager] CreateSealedRoom: 방이 맵 경계에 너무 가까워 문을 만들 수 없음. room={room.rect}");
-            return; // 문을 만들 수 없으면 그냥 반환
+            Debug.LogWarning($"[MapManager] CreateSealedRoom: 諛⑹씠 留?寃쎄퀎???덈Т 媛源뚯썙 臾몄쓣 留뚮뱾 ???놁쓬. room={room.rect}");
+            return; // 臾몄쓣 留뚮뱾 ???놁쑝硫?洹몃깷 諛섑솚
         }
         
-        int doorSide = validSides[Random.Range(0, validSides.Count)];
+        int doorSide = validSides[UnityEngine.Random.Range(0, validSides.Count)];
         Vector2Int doorPos = Vector2Int.zero;
 
         switch (doorSide)
         {
-            case 0: // 북쪽
+            case 0: // 遺곸そ
                 doorPos = new Vector2Int(
-                    room.rect.x + Random.Range(0, room.rect.width),
+                    room.rect.x + UnityEngine.Random.Range(0, room.rect.width),
                     room.rect.y - 1
                 );
                 break;
-            case 1: // 동쪽
+            case 1: // ?숈そ
                 doorPos = new Vector2Int(
                     room.rect.x + room.rect.width,
-                    room.rect.y + Random.Range(0, room.rect.height)
+                    room.rect.y + UnityEngine.Random.Range(0, room.rect.height)
                 );
                 break;
-            case 2: // 남쪽
+            case 2: // ?⑥そ
                 doorPos = new Vector2Int(
-                    room.rect.x + Random.Range(0, room.rect.width),
+                    room.rect.x + UnityEngine.Random.Range(0, room.rect.width),
                     room.rect.y + room.rect.height
                 );
                 break;
-            case 3: // 서쪽
+            case 3: // ?쒖そ
                 doorPos = new Vector2Int(
                     room.rect.x - 1,
-                    room.rect.y + Random.Range(0, room.rect.height)
+                    room.rect.y + UnityEngine.Random.Range(0, room.rect.height)
                 );
                 break;
         }
 
-        // 문 위치를 길(0)로 만들고 보호 해제 (통로와 연결될 수 있도록)
-        // 추가 안전장치: 범위 체크
+        // 臾??꾩튂瑜?湲?0)濡?留뚮뱾怨?蹂댄샇 ?댁젣 (?듬줈? ?곌껐?????덈룄濡?
+        // 異붽? ?덉쟾?μ튂: 踰붿쐞 泥댄겕
         if (doorPos.x >= 0 && doorPos.x < width && doorPos.y >= 0 && doorPos.y < height)
         {
             mapData[doorPos.y, doorPos.x] = 0;
-            isRoom[doorPos.y, doorPos.x] = false; // 문은 보호하지 않음
+            isRoom[doorPos.y, doorPos.x] = false; // 臾몄? 蹂댄샇?섏? ?딆쓬
             room.doorPos = doorPos;
         }
         else
         {
-            Debug.LogWarning($"[MapManager] CreateSealedRoom: 계산된 문 위치가 범위를 벗어남. doorPos={doorPos}, width={width}, height={height}");
+            Debug.LogWarning($"[MapManager] CreateSealedRoom: 怨꾩궛??臾??꾩튂媛 踰붿쐞瑜?踰쀬뼱?? doorPos={doorPos}, width={width}, height={height}");
         }
     }
 
     void ConnectRooms()
     {
-        Debug.Log($"ConnectRooms 시작 - 방 개수: {rooms.Count}");
+        Debug.Log($"ConnectRooms ?쒖옉 - 諛?媛쒖닔: {rooms.Count}");
         
         if (rooms.Count < 2)
         {
-            Debug.Log("방이 2개 미만이므로 연결 스킵");
-            // 방이 1개만 있어도 연결 체크는 해야 함
+            Debug.Log("諛⑹씠 2媛?誘몃쭔?대?濡??곌껐 ?ㅽ궢");
+            // 諛⑹씠 1媛쒕쭔 ?덉뼱???곌껐 泥댄겕???댁빞 ??
             EnsureAllConnected();
             return;
         }
 
-        // 각 방의 중심점 계산 (닫힌 방은 문 위치 사용)
+        // 媛?諛⑹쓽 以묒떖??怨꾩궛 (?ロ엺 諛⑹? 臾??꾩튂 ?ъ슜)
         List<Vector2Int> roomCenters = new List<Vector2Int>();
         foreach (var room in rooms)
         {
             if (room.isSealed && room.doorPos != Vector2Int.zero)
             {
-                // 닫힌 방은 문 위치를 연결점으로 사용
+                // ?ロ엺 諛⑹? 臾??꾩튂瑜??곌껐?먯쑝濡??ъ슜
                 roomCenters.Add(room.doorPos);
             }
             else
             {
-                // 일반 방은 중심점 사용
+                // ?쇰컲 諛⑹? 以묒떖???ъ슜
                 roomCenters.Add(new Vector2Int(
                     room.rect.x + room.rect.width / 2,
                     room.rect.y + room.rect.height / 2
@@ -470,18 +465,18 @@ public class MapManager : MonoBehaviour
             }
         }
         
-        Debug.Log($"방 중심점 계산 완료: {roomCenters.Count}개");
+        Debug.Log($"諛?以묒떖??怨꾩궛 ?꾨즺: {roomCenters.Count}媛?");
 
-        // 모든 방을 연결하는 최소 신장 트리 방식
-        // 이미 연결된 방들을 추적
-        List<int> connected = new List<int> { 0 }; // 첫 번째 방은 이미 연결됨
+        // 紐⑤뱺 諛⑹쓣 ?곌껐?섎뒗 理쒖냼 ?좎옣 ?몃━ 諛⑹떇
+        // ?대? ?곌껐??諛⑸뱾??異붿쟻
+        List<int> connected = new List<int> { 0 }; // 泥?踰덉㎏ 諛⑹? ?대? ?곌껐??
         List<int> unconnected = new List<int>();
         for (int i = 1; i < roomCenters.Count; i++)
         {
             unconnected.Add(i);
         }
 
-        // 모든 방이 연결될 때까지 반복
+        // 紐⑤뱺 諛⑹씠 ?곌껐???뚭퉴吏 諛섎났
         int safety = 0;
         int maxSafety = roomCenters.Count * 2;
         
@@ -494,7 +489,7 @@ public class MapManager : MonoBehaviour
             int closestConnected = -1;
             int closestUnconnected = -1;
 
-            // 연결된 방과 연결되지 않은 방 중 가장 가까운 쌍 찾기
+            // ?곌껐??諛⑷낵 ?곌껐?섏? ?딆? 諛?以?媛??媛源뚯슫 ??李얘린
             foreach (int connectedIdx in connected)
             {
                 foreach (int unconnectedIdx in unconnected)
@@ -509,7 +504,7 @@ public class MapManager : MonoBehaviour
                 }
             }
 
-            // 가장 가까운 방들을 연결
+            // 媛??媛源뚯슫 諛⑸뱾???곌껐
             if (closestConnected >= 0 && closestUnconnected >= 0)
             {
                 Debug.Log($"[MapManager] Connecting room {closestConnected} to room {closestUnconnected} (Distance: {minDistance})");
@@ -519,8 +514,8 @@ public class MapManager : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning("[MapManager] 방 연결 실패 - 가장 가까운 방을 찾을 수 없음");
-                break; // 연결 실패 시 중단
+                Debug.LogWarning("[MapManager] 諛??곌껐 ?ㅽ뙣 - 媛??媛源뚯슫 諛⑹쓣 李얠쓣 ???놁쓬");
+                break; // ?곌껐 ?ㅽ뙣 ??以묐떒
             }
         }
         
@@ -528,17 +523,18 @@ public class MapManager : MonoBehaviour
         {
             Debug.LogError($"[MapManager] ConnectRooms safety break triggered! (safety: {safety}, maxSafety: {maxSafety})");
         }
-        Debug.Log($"방 연결 완료 - 연결된 방: {connected.Count}개");
+        Debug.Log($"諛??곌껐 ?꾨즺 - ?곌껐??諛? {connected.Count}媛?");
         
-        // 모든 길(0) 셀이 연결되어 있는지 확인하고, 고립된 영역이 있으면 연결
+        // 紐⑤뱺 湲?0) ????곌껐?섏뼱 ?덈뒗吏 ?뺤씤?섍퀬, 怨좊┰???곸뿭???덉쑝硫??곌껐
+        
         EnsureAllConnected();
     }
 
     void EnsureAllConnected()
     {
-        Debug.Log("=== EnsureAllConnected 시작 ===");
+        Debug.Log("=== EnsureAllConnected ?쒖옉 ===");
         
-        // 모든 길(0) 셀 찾기
+        // 紐⑤뱺 湲?0) ? 李얘린
         List<Vector2Int> allFloorCells = new List<Vector2Int>();
         for (int y = 0; y < height; y++)
         {
@@ -551,15 +547,15 @@ public class MapManager : MonoBehaviour
             }
         }
 
-        Debug.Log($"총 길(0) 셀 개수: {allFloorCells.Count}");
+        Debug.Log($"珥?湲?0) ? 媛쒖닔: {allFloorCells.Count}");
         
         if (allFloorCells.Count == 0)
         {
-            Debug.LogWarning("길(0) 셀이 하나도 없습니다!");
+            Debug.LogWarning("湲?0) ????섎굹???놁뒿?덈떎!");
             return;
         }
 
-        // BFS로 연결된 영역 찾기
+        // BFS濡??곌껐???곸뿭 李얘린
         HashSet<Vector2Int> visited = new HashSet<Vector2Int>();
         List<List<Vector2Int>> regions = new List<List<Vector2Int>>();
 
@@ -567,7 +563,7 @@ public class MapManager : MonoBehaviour
         {
             if (visited.Contains(cell)) continue;
 
-            // 새로운 영역 발견
+            // ?덈줈???곸뿭 諛쒓껄
             List<Vector2Int> region = new List<Vector2Int>();
             Queue<Vector2Int> queue = new Queue<Vector2Int>();
             queue.Enqueue(cell);
@@ -578,7 +574,7 @@ public class MapManager : MonoBehaviour
                 Vector2Int current = queue.Dequeue();
                 region.Add(current);
 
-                // 4방향 체크 (경계 체크 완화)
+                // 4諛⑺뼢 泥댄겕 (寃쎄퀎 泥댄겕 ?꾪솕)
                 Vector2Int[] dirs = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
                 foreach (var dir in dirs)
                 {
@@ -596,19 +592,19 @@ public class MapManager : MonoBehaviour
             regions.Add(region);
         }
 
-        // 여러 영역이 있으면 연결 (최대 10번 반복으로 무한 루프 방지)
+        // ?щ윭 ?곸뿭???덉쑝硫??곌껐 (理쒕? 10踰?諛섎났?쇰줈 臾댄븳 猷⑦봽 諛⑹?)
         int maxIterations = 10;
         int iteration = 0;
         
         while (regions.Count > 1 && iteration < maxIterations)
         {
             iteration++;
-            Debug.Log($"고립된 영역 발견: {regions.Count}개, 연결 중... (반복 {iteration})");
+            Debug.Log($"怨좊┰???곸뿭 諛쒓껄: {regions.Count}媛? ?곌껐 以?.. (諛섎났 {iteration})");
             
-            // 첫 번째 영역을 기준으로 나머지 영역들을 연결
+            // 泥?踰덉㎏ ?곸뿭??湲곗??쇰줈 ?섎㉧吏 ?곸뿭?ㅼ쓣 ?곌껐
             for (int i = 1; i < regions.Count; i++)
             {
-                // 각 영역에서 가장 가까운 셀 찾기
+                // 媛??곸뿭?먯꽌 媛??媛源뚯슫 ? 李얘린
                 Vector2Int closest1 = regions[0][0];
                 Vector2Int closest2 = regions[i][0];
                 float minDist = float.MaxValue;
@@ -617,7 +613,7 @@ public class MapManager : MonoBehaviour
                 {
                     foreach (var cell2 in regions[i])
                     {
-                        // 실제 거리가 아니라 택시 거리를 사용하여 복도와 더 잘 어울리게 함
+                        // ?ㅼ젣 嫄곕━媛 ?꾨땲???앹떆 嫄곕━瑜??ъ슜?섏뿬 蹂듬룄? ?????댁슱由ш쾶 ??
                         float dist = Mathf.Abs(cell1.x - cell2.x) + Mathf.Abs(cell1.y - cell2.y);
                         if (dist < minDist)
                         {
@@ -628,11 +624,11 @@ public class MapManager : MonoBehaviour
                     }
                 }
 
-                // 두 영역을 통로로 연결
+                // ???곸뿭???듬줈濡??곌껐
                 CreateCorridor(closest1, closest2);
             }
 
-            // CreateCorridor 호출 후 맵이 변경되었으므로 allFloorCells를 다시 계산해야 함
+            // CreateCorridor ?몄텧 ??留듭씠 蹂寃쎈릺?덉쑝誘濡?allFloorCells瑜??ㅼ떆 怨꾩궛?댁빞 ??            
             allFloorCells.Clear();
             for (int y = 0; y < height; y++)
             {
@@ -645,7 +641,7 @@ public class MapManager : MonoBehaviour
                 }
             }
 
-            // 다시 영역 체크
+            // ?ㅼ떆 ?곸뿭 泥댄겕
             visited.Clear();
             regions.Clear();
             
@@ -681,29 +677,29 @@ public class MapManager : MonoBehaviour
             }
         }
 
-        Debug.Log($"최종 영역 개수: {regions.Count}");
+        Debug.Log($"理쒖쥌 ?곸뿭 媛쒖닔: {regions.Count}");
         
         if (regions.Count > 1)
         {
-            Debug.LogWarning($"경고: {regions.Count}개의 고립된 영역이 남아있습니다.");
+            Debug.LogWarning($"寃쎄퀬: {regions.Count}媛쒖쓽 怨좊┰???곸뿭???⑥븘?덉뒿?덈떎.");
         }
         else if (regions.Count == 1)
         {
-            Debug.Log("✅ 모든 영역이 연결되었습니다!");
+            Debug.Log("??紐⑤뱺 ?곸뿭???곌껐?섏뿀?듬땲??");
         }
         else
         {
-            Debug.LogWarning("경고: 영역이 없습니다!");
+            Debug.LogWarning("寃쎄퀬: ?곸뿭???놁뒿?덈떎!");
         }
         
-        Debug.Log("=== EnsureAllConnected 완료 ===");
+        Debug.Log("=== EnsureAllConnected ?꾨즺 ===");
     }
 
     void GenerateMazeConnections()
     {
-        Debug.Log("=== GenerateMazeConnections 시작 ===");
+        Debug.Log("=== GenerateMazeConnections ?쒖옉 ===");
         
-        // 맵 전체를 순회하며 아직 방문하지 않은(벽인) 홀수 좌표에서 미로 시작
+        // 留??꾩껜瑜??쒗쉶?섎ŉ ?꾩쭅 諛⑸Ц?섏? ?딆?(踰쎌씤) ???醫뚰몴?먯꽌 誘몃줈 ?쒖옉
         for (int y = 1; y < height - 1; y += 2)
         {
             for (int x = 1; x < width - 1; x += 2)
@@ -715,32 +711,32 @@ public class MapManager : MonoBehaviour
             }
         }
         
-        Debug.Log("=== GenerateMazeConnections 완료 ===");
+        Debug.Log("=== GenerateMazeConnections ?꾨즺 ===");
     }
 
     void CreateCorridor(Vector2Int start, Vector2Int end)
     {
-        // L자 경로로 연결 (수평 먼저, 그 다음 수직)
-        // 수평 경로
+        // L??寃쎈줈濡??곌껐 (?섑룊 癒쇱?, 洹??ㅼ쓬 ?섏쭅)
+        // ?섑룊 寃쎈줈
         int xStart = Mathf.Min(start.x, end.x);
         int xEnd = Mathf.Max(start.x, end.x);
         for (int x = xStart; x <= xEnd; x++)
         {
             if (x >= 0 && x < width && start.y >= 0 && start.y < height)
             {
-                // 복도는 보호 구역을 무시함 (모든 구역의 연결이 우선)
+                // 蹂듬룄??蹂댄샇 援ъ뿭??臾댁떆??(紐⑤뱺 援ъ뿭???곌껐???곗꽑)
                 mapData[start.y, x] = 0;
             }
         }
 
-        // 수직 경로
+        // ?섏쭅 寃쎈줈
         int yStart = Mathf.Min(start.y, end.y);
         int yEnd = Mathf.Max(start.y, end.y);
         for (int y = yStart; y <= yEnd; y++)
         {
             if (end.x >= 0 && end.x < width && y >= 0 && y < height)
             {
-                // 복도는 보호 구역을 무시함 (모든 구역의 연결이 우선)
+                // 蹂듬룄??蹂댄샇 援ъ뿭??臾댁떆??(紐⑤뱺 援ъ뿭???곌껐???곗꽑)
                 mapData[y, end.x] = 0;
             }
         }
@@ -758,7 +754,7 @@ public class MapManager : MonoBehaviour
                 
                 if (DungeonPersistentData.hasSavedState)
                 {
-                    // 저장된 위치가 유효한지 확인
+                    // ??λ맂 ?꾩튂媛 ?좏슚?쒖? ?뺤씤
                     if (DungeonPersistentData.lastPlayerGridPos.x >= 0 && 
                         DungeonPersistentData.lastPlayerGridPos.y >= 0 &&
                         DungeonPersistentData.lastPlayerGridPos.x < width &&
@@ -776,7 +772,7 @@ public class MapManager : MonoBehaviour
                 }
                 else
                 {
-                    // startPos가 유효한지 확인
+                    // startPos媛 ?좏슚?쒖? ?뺤씤
                     if (startPos.x >= 0 && startPos.y >= 0 && startPos.x < width && startPos.y < height)
                     {
                         player.Teleport(startPos);
@@ -802,10 +798,10 @@ public class MapManager : MonoBehaviour
 
     void Carve(int x, int y)
     {
-        // 범위 체크
+        // 踰붿쐞 泥댄겕
         if (!InBounds(x, y))
         {
-            Debug.LogWarning($"[MapManager] Carve: 범위를 벗어난 좌표. x={x}, y={y}");
+            Debug.LogWarning($"[MapManager] Carve: 踰붿쐞瑜?踰쀬뼱??醫뚰몴. x={x}, y={y}");
             return;
         }
         
@@ -822,7 +818,7 @@ public class MapManager : MonoBehaviour
         for (int i = 0; i < dirs.Count; i++)
         {
             Vector2Int temp = dirs[i];
-            int rand = Random.Range(i, dirs.Count);
+            int rand = UnityEngine.Random.Range(i, dirs.Count);
             dirs[i] = dirs[rand];
             dirs[rand] = temp;
         }
@@ -834,10 +830,10 @@ public class MapManager : MonoBehaviour
             int midX = x + dir.x;
             int midY = y + dir.y;
 
-            // 보호된 타일(isRoom)은 파고들지 않음
+            // 蹂댄샇?????isRoom)? ?뚭퀬?ㅼ? ?딆쓬
             if (InBounds(nx, ny) && mapData[ny, nx] == 1 && !isRoom[ny, nx])
             {
-                // 중간 벽도 범위 체크 후 제거
+                // 以묎컙 踰쎈룄 踰붿쐞 泥댄겕 ???쒓굅
                 if (InBounds(midX, midY))
                 {
                     mapData[midY, midX] = 0;
@@ -854,7 +850,7 @@ public class MapManager : MonoBehaviour
 
     void DrawMap()
     {
-        // null 체크
+        // null 泥댄겕
         if (floorTilemap == null)
         {
             Debug.LogError("[MapManager] DrawMap: floorTilemap is null!");
@@ -888,14 +884,14 @@ public class MapManager : MonoBehaviour
 
                 if (fogTilemap != null && fogTile != null)
                 {
-                    // 탐험된 영역인지 확인하여 안개 설정
+                    // ?먰뿕???곸뿭?몄? ?뺤씤?섏뿬 ?덇컻 ?ㅼ젙
                     if (DungeonPersistentData.revealedTiles.Contains(new Vector2Int(x, y)))
                     {
                         fogTilemap.SetTile(pos, null);
                     }
                     else
                     {
-                        // 안개 유지 (출구도 가리는 것이 기본)
+                        // ?덇컻 ?좎? (異쒓뎄??媛由щ뒗 寃껋씠 湲곕낯)
                         fogTilemap.SetTile(pos, fogTile);
                     }
                 }
@@ -907,15 +903,15 @@ public class MapManager : MonoBehaviour
                 }
                 else
                 {
-                    // 기본 바닥을 깐다 (이후 출구면 다른 타일로 덮을 수 있음)
+                    // 湲곕낯 諛붾떏??源먮떎 (?댄썑 異쒓뎄硫??ㅻⅨ ??쇰줈 ??쓣 ???덉쓬)
                     floorTilemap.SetTile(pos, floorTile);
-                    // 색상 적용을 위해 LockColor 해제 (기본 바닥)
+                    // ?됱긽 ?곸슜???꾪빐 LockColor ?댁젣 (湲곕낯 諛붾떏)
                     floorTilemap.SetTileFlags(pos, TileFlags.None);
 
-                    // 출구 표시 (계단 타일 또는 색상 하이라이트)
+                    // 異쒓뎄 ?쒖떆 (怨꾨떒 ????먮뒗 ?됱긽 ?섏씠?쇱씠??
                     if (isExit)
                     {
-                        // 밝은 전용 타일이 있으면 우선 사용, 없으면 계단/바닥 순으로 선택
+                        // 諛앹? ?꾩슜 ??쇱씠 ?덉쑝硫??곗꽑 ?ъ슜, ?놁쑝硫?怨꾨떒/諛붾떏 ?쒖쑝濡??좏깮
                         if (exitHighlightTile != null)
                         {
                             floorTilemap.SetTile(pos, exitHighlightTile);
@@ -925,42 +921,42 @@ public class MapManager : MonoBehaviour
                             floorTilemap.SetTile(pos, stairsTile);
                         }
 
-                        // 계단 타일을 덮었으므로 다시 LockColor 해제
+                        // 怨꾨떒 ??쇱쓣 ??뿀?쇰?濡??ㅼ떆 LockColor ?댁젣
                         floorTilemap.SetTileFlags(pos, TileFlags.None);
 
                         if (highlightExit)
                         {
-                            // 계단 타일이 있든 없든 색상 적용 (계단 스프라이트가 단색이면 덮어씀)
+                            // 怨꾨떒 ??쇱씠 ?덈뱺 ?녿뱺 ?됱긽 ?곸슜 (怨꾨떒 ?ㅽ봽?쇱씠?멸? ?⑥깋?대㈃ ??뼱?)
                             floorTilemap.SetColor(pos, exitColor);
-                            // RefreshTile은 루프 끝에서 한 번만 호출하도록 최적화
+                            // RefreshTile? 猷⑦봽 ?앹뿉????踰덈쭔 ?몄텧?섎룄濡?理쒖쟻??
                             Debug.Log($"[MapManager] Exit highlighted at {exitPos} with color {exitColor}");
                         }
                         else
                         {
                             floorTilemap.SetColor(pos, Color.white);
-                            // RefreshTile은 루프 끝에서 한 번만 호출하도록 최적화
+                            // RefreshTile? 猷⑦봽 ?앹뿉????踰덈쭔 ?몄텧?섎룄濡?理쒖쟻??
                         }
                     }
                     else
                     {
-                        // 일반 바닥은 기본색으로
+                        // ?쇰컲 諛붾떏? 湲곕낯?됱쑝濡?
                         floorTilemap.SetColor(pos, Color.white);
-                        // RefreshTile은 루프 끝에서 한 번만 호출하도록 최적화
+                        // RefreshTile? 猷⑦봽 ?앹뿉????踰덈쭔 ?몄텧?섎룄濡?理쒖쟻??
                     }
                     floorCount++;
                 }
             }
         }
 
-        // 최종적으로 출구 색상을 다시 한 번 강제 적용 (혹시 중간에 덮였을 경우 대비)
+        // 理쒖쥌?곸쑝濡?異쒓뎄 ?됱긽???ㅼ떆 ??踰?媛뺤젣 ?곸슜 (?뱀떆 以묎컙???????寃쎌슦 ?鍮?
         ForceExitHighlight();
         
-        // 모든 타일 업데이트를 한 번에 처리 (성능 최적화)
+        // 紐⑤뱺 ????낅뜲?댄듃瑜???踰덉뿉 泥섎━ (?깅뒫 理쒖쟻??
         floorTilemap.RefreshAllTiles();
         wallTilemap.RefreshAllTiles();
         if (fogTilemap != null) fogTilemap.RefreshAllTiles();
 
-        Debug.Log($"맵 생성 완료: 크기 {width}x{height} = {width * height}개 셀 (길: {floorCount}개, 벽: {wallCount}개)");
+        Debug.Log($"留??앹꽦 ?꾨즺: ?ш린 {width}x{height} = {width * height}媛?? (湲? {floorCount}媛? 踰? {wallCount}媛?)");
     }
 
     void ForceExitHighlight()
@@ -970,7 +966,7 @@ public class MapManager : MonoBehaviour
 
         Vector3Int pos = new Vector3Int(exitPos.x, -exitPos.y, 0);
 
-        // 바닥 없으면 바닥부터
+        // 諛붾떏 ?놁쑝硫?諛붾떏遺??
         if (!floorTilemap.HasTile(pos))
         {
             TileBase baseTile = exitHighlightTile != null ? exitHighlightTile : (stairsTile != null ? stairsTile : floorTile);
@@ -982,28 +978,28 @@ public class MapManager : MonoBehaviour
         }
         else if (stairsTile != null)
         {
-            // 계단을 사용하도록 덮기
+            // 怨꾨떒???ъ슜?섎룄濡???린
             floorTilemap.SetTile(pos, stairsTile);
         }
 
-        // 색 적용을 위해 LockColor 해제 후 색상 강제
+        // ???곸슜???꾪빐 LockColor ?댁젣 ???됱긽 媛뺤젣
         floorTilemap.SetTileFlags(pos, TileFlags.None);
 
-        // 알파가 0인 경우 대비: 최소 0.9로 보정
+        // ?뚰뙆媛 0??寃쎌슦 ?鍮? 理쒖냼 0.9濡?蹂댁젙
         Color c = exitColor;
         if (c.a < 0.05f) c.a = 1f;
         floorTilemap.SetColor(pos, c);
 
-        // RefreshAllTiles는 DrawMap()에서 이미 호출되므로 여기서는 생략
+        // RefreshAllTiles??DrawMap()?먯꽌 ?대? ?몄텧?섎?濡??ш린?쒕뒗 ?앸왂
         Debug.Log($"[MapManager] ForceExitHighlight at {exitPos} color {c}");
     }
 
-    // 시작 지점에서 가장 먼 길(0) 셀 찾기 (맨해튼 거리 기준 BFS)
+    // ?쒖옉 吏?먯뿉??媛??癒?湲?0) ? 李얘린 (留⑦빐??嫄곕━ 湲곗? BFS)
     Vector2Int FindFarthestFloorCell(Vector2Int start)
     {
         if (!InBounds(start.x, start.y) || mapData[start.y, start.x] != 0)
         {
-            Debug.LogWarning($"[MapManager] FindFarthestFloorCell: 시작 위치가 유효하지 않음. startPos 반환: {startPos}");
+            Debug.LogWarning($"[MapManager] FindFarthestFloorCell: ?쒖옉 ?꾩튂媛 ?좏슚?섏? ?딆쓬. startPos 諛섑솚: {startPos}");
             return startPos;
         }
 
@@ -1016,7 +1012,7 @@ public class MapManager : MonoBehaviour
         Vector2Int far = start;
         int maxD = 0;
         
-        // 안전장치: 최대 탐색 횟수 제한 (맵 크기의 2배)
+        // ?덉쟾?μ튂: 理쒕? ?먯깋 ?잛닔 ?쒗븳 (留??ш린??2諛?
         int maxSearchCount = width * height * 2;
         int searchCount = 0;
 
@@ -1044,9 +1040,11 @@ public class MapManager : MonoBehaviour
         
         if (searchCount >= maxSearchCount)
         {
-            Debug.LogWarning($"[MapManager] FindFarthestFloorCell: 최대 탐색 횟수 도달. 현재까지 찾은 가장 먼 위치 반환: {far}");
+            Debug.LogWarning($"[MapManager] FindFarthestFloorCell: 理쒕? ?먯깋 ?잛닔 ?꾨떖. ?꾩옱源뚯? 李얠? 媛??癒??꾩튂 諛섑솚: {far}");
         }
 
         return far;
     }
 }
+
+

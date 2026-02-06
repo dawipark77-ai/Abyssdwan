@@ -1,20 +1,18 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 
 /// <summary>
-/// 던전 크롤러 02 - 3D 공간에 2D 스타일로 렌더링되는 던전 생성기
-/// </summary>
+/// ?섏쟾 ?щ·??02 - 3D 怨듦컙??2D ?ㅽ??쇰줈 ?뚮뜑留곷릺???섏쟾 ?앹꽦湲?/// </summary>
 public class DungeonCrawler02Generator : MonoBehaviour
 {
     [Header("Dungeon Settings")]
     public int corridorLength = 30;
     public float corridorWidth = 4f;
-    public float tileSize = 1f; // 타일 크기
+    public float tileSize = 1f; // ????ш린
     
     [Header("Sprite Settings")]
     public bool usePixelArt = true;
-    public int spriteResolution = 64; // 스프라이트 해상도
-    
+    public int spriteResolution = 64; // ?ㅽ봽?쇱씠???댁긽??    
     private List<GameObject> dungeonObjects = new List<GameObject>();
     private GameObject dungeonRoot;
     
@@ -59,10 +57,10 @@ public class DungeonCrawler02Generator : MonoBehaviour
     
     void CreateFloor()
     {
-        // 바닥 Y 위치: 플레이어 발 위치 (CharacterController center가 1f이므로 발은 0f)
+        // 諛붾떏 Y ?꾩튂: ?뚮젅?댁뼱 諛??꾩튂 (CharacterController center媛 1f?대?濡?諛쒖? 0f)
         float floorY = 0f;
         
-        // 큰 단일 바닥 생성 (확실히 보이도록)
+        // ???⑥씪 諛붾떏 ?앹꽦 (?뺤떎??蹂댁씠?꾨줉)
         GameObject mainFloor = CreateSpriteTile("MainFloor", 
             CreateFloorSprite(), 
             new Vector3(0, floorY, corridorLength / 2), 
@@ -76,7 +74,7 @@ public class DungeonCrawler02Generator : MonoBehaviour
             DestroyImmediate(mainBillboard);
         }
         
-        // 추가: 바닥 타일 생성 (장식용)
+        // 異붽?: 諛붾떏 ????앹꽦 (?μ떇??
         int tilesX = Mathf.CeilToInt(corridorWidth / tileSize);
         int tilesZ = Mathf.CeilToInt(corridorLength / tileSize);
         
@@ -107,15 +105,14 @@ public class DungeonCrawler02Generator : MonoBehaviour
     
     void CreateWalls()
     {
-        // 왼쪽 벽
+        // ?쇱そ 踰?
         int wallTiles = Mathf.CeilToInt(corridorLength / tileSize);
         for (int i = 0; i < wallTiles; i++)
         {
             Vector3 leftPos = new Vector3(-corridorWidth / 2, 0, i * tileSize + tileSize / 2);
             GameObject leftWall = CreateSpriteTile("LeftWall_" + i, 
                 CreateWallSprite(), leftPos, Quaternion.Euler(0, 90, 0), dungeonRoot.transform);
-            leftWall.transform.localScale = new Vector3(tileSize, tileSize * 4, 1); // 높이 4배
-            
+            leftWall.transform.localScale = new Vector3(tileSize, tileSize * 4, 1); // ?믪씠 4諛?            
             Vector3 rightPos = new Vector3(corridorWidth / 2, 0, i * tileSize + tileSize / 2);
             GameObject rightWall = CreateSpriteTile("RightWall_" + i, 
                 CreateWallSprite(), rightPos, Quaternion.Euler(0, -90, 0), dungeonRoot.transform);
@@ -139,9 +136,9 @@ public class DungeonCrawler02Generator : MonoBehaviour
     {
         for (float z = 2f; z < corridorLength - 2f; z += 8f)
         {
-            // 왼쪽 벽 횃대 (바닥 위)
+            // ?쇱そ 踰??껊? (諛붾떏 ??
             CreateTorch(new Vector3(-corridorWidth / 2 + 0.3f, 1.5f, z));
-            // 오른쪽 벽 횃대 (바닥 위)
+            // ?ㅻⅨ履?踰??껊? (諛붾떏 ??
             CreateTorch(new Vector3(corridorWidth / 2 - 0.3f, 1.5f, z));
         }
     }
@@ -152,10 +149,10 @@ public class DungeonCrawler02Generator : MonoBehaviour
             CreateTorchSprite(), position, Quaternion.identity, dungeonRoot.transform);
         torch.transform.localScale = Vector3.one * 0.5f;
         
-        // Billboard 효과 (카메라를 항상 바라봄)
+        // Billboard ?④낵 (移대찓?쇰? ??긽 諛붾씪遊?
         BillboardSprite billboard = torch.AddComponent<BillboardSprite>();
         
-        // 조명 추가
+        // 議곕챸 異붽?
         Light torchLight = torch.AddComponent<Light>();
         torchLight.type = LightType.Point;
         torchLight.color = new Color(0.3f, 0.6f, 1f);
@@ -166,13 +163,13 @@ public class DungeonCrawler02Generator : MonoBehaviour
     
     void AddDecorations()
     {
-        // 해골 배치 (바닥 위)
+        // ?닿낏 諛곗튂 (諛붾떏 ??
         for (int i = 0; i < corridorLength * 0.2f; i++)
         {
             Vector3 pos = new Vector3(
-                Random.Range(-corridorWidth / 2 + 0.5f, corridorWidth / 2 - 0.5f),
-                0f, // 바닥 위
-                Random.Range(1f, corridorLength - 1f)
+                UnityEngine.Random.Range(-corridorWidth / 2 + 0.5f, corridorWidth / 2 - 0.5f),
+                0f, // 諛붾떏 ??
+                UnityEngine.Random.Range(1f, corridorLength - 1f)
             );
             CreateSkeleton(pos);
         }
@@ -180,14 +177,14 @@ public class DungeonCrawler02Generator : MonoBehaviour
     
     void CreateSkeleton(Vector3 position)
     {
-        // 해골 위치: 바닥 위
+        // ?닿낏 ?꾩튂: 諛붾떏 ??
         Vector3 skeletonPos = new Vector3(position.x, 0f, position.z);
         GameObject skeleton = CreateSpriteTile("Skeleton", 
             CreateSkeletonSprite(), skeletonPos, Quaternion.identity, dungeonRoot.transform);
         skeleton.transform.localScale = Vector3.one * 0.3f;
-        skeleton.transform.rotation = Quaternion.Euler(0, Random.Range(0, 360), 0);
+        skeleton.transform.rotation = Quaternion.Euler(0, UnityEngine.Random.Range(0, 360), 0);
         
-        // Billboard 효과
+        // Billboard ?④낵
         BillboardSprite billboard = skeleton.AddComponent<BillboardSprite>();
     }
     
@@ -203,13 +200,13 @@ public class DungeonCrawler02Generator : MonoBehaviour
         sr.sortingOrder = Mathf.RoundToInt(-position.z * 10);
         sr.sortingLayerName = "Default";
         
-        // 바닥은 항상 보이도록 설정
+        // 諛붾떏? ??긽 蹂댁씠?꾨줉 ?ㅼ젙
         if (name.Contains("Floor"))
         {
-            sr.sortingOrder = -1000; // 가장 뒤에 렌더링
+            sr.sortingOrder = -1000; // 媛???ㅼ뿉 ?뚮뜑留?
         }
         
-        // 픽셀 아트 스타일
+        // ?쎌? ?꾪듃 ?ㅽ???
         if (sprite != null && sprite.texture != null)
         {
             sprite.texture.filterMode = usePixelArt ? FilterMode.Point : FilterMode.Bilinear;
@@ -233,17 +230,17 @@ public class DungeonCrawler02Generator : MonoBehaviour
         RenderSettings.fogDensity = 0.015f;
     }
     
-    // 스프라이트 생성 메서드들
+    // ?ㅽ봽?쇱씠???앹꽦 硫붿꽌?쒕뱾
     Sprite CreateFloorSprite()
     {
         Texture2D tex = new Texture2D(spriteResolution, spriteResolution, TextureFormat.RGBA32, false);
-        Color baseColor = new Color(0.3f, 0.3f, 0.35f); // 더 밝게
+        Color baseColor = new Color(0.3f, 0.3f, 0.35f); // ??諛앷쾶
         
         for (int x = 0; x < spriteResolution; x++)
         {
             for (int y = 0; y < spriteResolution; y++)
             {
-                // 타일 패턴 - 더 명확하게
+                // ????⑦꽩 - ??紐낇솗?섍쾶
                 int tileX = x / (spriteResolution / 4);
                 int tileY = y / (spriteResolution / 4);
                 
@@ -256,7 +253,7 @@ public class DungeonCrawler02Generator : MonoBehaviour
                     tex.SetPixel(x, y, baseColor * 0.85f);
                 }
                 
-                // 타일 경계선
+                // ???寃쎄퀎??
                 if (x % (spriteResolution / 4) == 0 || y % (spriteResolution / 4) == 0)
                 {
                     tex.SetPixel(x, y, baseColor * 0.7f);
@@ -277,7 +274,7 @@ public class DungeonCrawler02Generator : MonoBehaviour
         {
             for (int y = 0; y < spriteResolution * 2; y++)
             {
-                // 돌 블록 패턴
+                // ??釉붾줉 ?⑦꽩
                 if ((x / (spriteResolution / 8) + y / (spriteResolution / 8)) % 2 == 0)
                 {
                     tex.SetPixel(x, y, wallColor * 1.1f);
@@ -349,9 +346,9 @@ public class DungeonCrawler02Generator : MonoBehaviour
         {
             for (int y = 0; y < spriteResolution; y++)
             {
-                // 간단한 해골 모양
-                if ((x > spriteResolution / 8 && x < spriteResolution * 3 / 8 && y > spriteResolution * 0.6f && y < spriteResolution * 0.9f) || // 머리
-                    (x > spriteResolution / 6 && x < spriteResolution / 3 && y > spriteResolution * 0.3f && y < spriteResolution * 0.6f)) // 몸통
+                // 媛꾨떒???닿낏 紐⑥뼇
+                if ((x > spriteResolution / 8 && x < spriteResolution * 3 / 8 && y > spriteResolution * 0.6f && y < spriteResolution * 0.9f) || // 癒몃━
+                    (x > spriteResolution / 6 && x < spriteResolution / 3 && y > spriteResolution * 0.3f && y < spriteResolution * 0.6f)) // 紐명넻
                 {
                     tex.SetPixel(x, y, boneColor);
                 }
@@ -366,4 +363,5 @@ public class DungeonCrawler02Generator : MonoBehaviour
         return Sprite.Create(tex, new Rect(0, 0, spriteResolution / 2, spriteResolution), new Vector2(0.5f, 0.5f), spriteResolution);
     }
 }
+
 

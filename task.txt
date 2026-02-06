@@ -1,9 +1,11 @@
 한글로 답해
 
-"로직은 완벽해. 하지만 여전히 맵 스테이터스 창은 130 그대로야. 이유는 DungeonStatusView가 맵에 돌아왔을 때 데이터를 새로고침하지 않기 때문이야. 아래 사항을 즉시 적용해줘."
+"너가 Random 충돌을 해결하려다가 프로젝트의 URP(Universal Render Pipeline) 설정까지 망가뜨렸어. 현재 Default Renderer is missing 에러가 뜨면서 그래픽 설정이 다 깨진 상태야. 당장 아래 작업들을 수행해:
 
-DungeonStatusView.cs의 OnEnable 수정: 맵 씬이 활성화될 때(창이 열릴 때), 무조건 playerStats.statData.currentHP를 다시 읽어서 화면을 갱신하도록 UpdateUI()를 강제 호출해줘.
+URP 에셋 복구: 프로젝트 내의 UniversalRP 에셋(또는 관련 .asset 파일)을 찾아서, 비어버린 Renderer List에 기존의 ForwardRenderer(또는 UniversalRP_Renderer)를 다시 할당해.
 
-데이터 소스 고정: UI가 PlayerStats의 변수를 보지 말고, statData(SO 에셋)에 저장된 값을 최우선으로 그리도록 코드를 확인해줘.
+설정 파일 변경사항 확인: 너가 방금 Library나 ProjectSettings 폴더, 혹은 .asset 파일을 임의로 수정하거나 지운 게 있는지 확인하고 전부 되돌려(Rollback).
 
-이벤트 재연결: 씬이 바뀌면서 PlayerStats 인스턴스가 바뀌었을 수도 있어. 맵 씬에 있는 PlayerStats와 DungeonStatusView가 제대로 연결되어 있는지 체크하는 로그를 넣어줘.
+Random 에러 최종 해결: Random 문제는 아까 말했듯이 **'코드 내부'**에서 UnityEngine.Random으로 풀네임을 쓰는 방식으로만 해결하고, 프로젝트 전역 설정이나 외부 패키지(KMeans.cs)는 절대 건드리지 마.
+
+에러 제로 확인: 유니티 콘솔에 Renderer missing 에러와 Random 에러가 모두 사라질 때까지 책임을 지고 수정해."

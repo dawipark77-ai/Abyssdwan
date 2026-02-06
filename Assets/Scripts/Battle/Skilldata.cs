@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 [System.Serializable]
-public class SkillData : System.IComparable<SkillData>
+public class OldSkillData : System.IComparable<OldSkillData>
 {
     public string skillID;        // 스킬 고유 ID
     public string skillName;      // 스킬 이름
@@ -22,7 +22,7 @@ public class SkillData : System.IComparable<SkillData>
     public float effectValue = 0f;       // 회복량(%) 또는 방어력 증가량(%)
 
     // --- 생성자 ---
-    public SkillData(string id, string name, string type, float hpCostPercent, float mpCost, float minMultiplier, float maxMultiplier,
+    public OldSkillData(string id, string name, string type, float hpCostPercent, float mpCost, float minMultiplier, float maxMultiplier,
                      int hitCount = 1, string scalingStat = "Attack", float selfDamageChance = 0f, float selfDamagePercent = 0f,
                      bool isRecovery = false, bool isDefensive = false, float effectValue = 0f)
     {
@@ -45,7 +45,7 @@ public class SkillData : System.IComparable<SkillData>
 
 
     // 정렬을 위한 비교 메서드 (HP 스킬 우선, 그 다음 코스트 오름차순)
-    public int CompareTo(SkillData other)
+    public int CompareTo(OldSkillData other)
     {
         if (other == null) return 1;
 

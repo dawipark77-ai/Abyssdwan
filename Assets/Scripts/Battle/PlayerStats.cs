@@ -1,6 +1,28 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using System;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+using AbyssdawnBattle;
+
+/// <summary>
+/// 활성화된 저주 인스턴스를 추적하는 클래스
+/// </summary>
+[System.Serializable]
+public class CurseInstance
+{
+    public CurseData curseData;
+    public int remainingTurns;
+    public GameObject vfxInstance; // 생성된 이펙트 오브젝트
+
+    public CurseInstance(CurseData data)
+    {
+        curseData = data;
+        remainingTurns = data.duration;
+        vfxInstance = null;
+    }
+}
 
 public class PlayerStats : MonoBehaviour
 {
@@ -14,6 +36,7 @@ public class PlayerStats : MonoBehaviour
     private int _fallbackLevel = 1;
     private int _fallbackExp = 0;
     private bool _isInitialized = false; // 초기화 완료 플래그
+    private static bool _isFirstLaunch = true; // 앱 첫 실행 여부
 
     // [NEW] 이벤트 시스템 - HP/MP/스탯이 변경될 때마다 발동
     public static event Action OnStatusChanged;
@@ -33,19 +56,77 @@ public class PlayerStats : MonoBehaviour
     public int baseAgility = 5;
     public int baseLuck = 3;
 
-    [Header("4. 장착된 직업 데이터")]
-    public CharacterClass characterClass; 
+    [Header("4. 장착된 직업 데이터 (런타임 - 읽기 전용)")]
+    [Tooltip("이 필드는 Awake()에서 statData.currentJob을 읽어 자동 설정됩니다. 에디터에서 직접 수정하지 마세요!")]
+    public CharacterClass characterClass;
 
-    // --- [실시간 조립 계산식 - 대소문자 모두 대응] ---
-    public int maxHP => (characterClass != null) ? characterClass.GetFinalMaxHP(baseHP) : baseHP;
-    public int maxMP => (characterClass != null) ? characterClass.GetFinalMaxMP(baseMP) : baseMP;
-    
+    // --- [실시간 조립 계산식 - 직업 + 패시브 보너스] ---
+    // MaxHP/MP = (기본값 × 직업 배율) + 패시브 보너스
+    public int maxHP
+    {
+        get
+        {
+            int baseValue = (characterClass != null) ? characterClass.GetFinalMaxHP(baseHP) : baseHP;
+            int passiveBonus = GetPassiveHPBonus();
+            return baseValue + passiveBonus;
+        }
+    }
+
+    public int maxMP
+    {
+        get
+        {
+            int baseValue = (characterClass != null) ? characterClass.GetFinalMaxMP(baseMP) : baseMP;
+            int passiveBonus = GetPassiveMPBonus();
+            return baseValue + passiveBonus;
+        }
+    }
+
     // 대문자 버전 (BattleManager 등 최신 스크립트용)
-    public int Attack  => (characterClass != null) ? characterClass.GetFinalAttack(baseAttack) : baseAttack;
-    public int Defense => (characterClass != null) ? characterClass.GetFinalDefense(baseDefense) : baseDefense;
-    public int Magic   => (characterClass != null) ? characterClass.GetFinalMagic(baseMagic) : baseMagic;
-    public int Agility => (characterClass != null) ? characterClass.GetFinalAgility(baseAgility) : baseAgility;
-    public int Luck    => (characterClass != null) ? characterClass.GetFinalLuck(baseLuck) : baseLuck;
+    public int Attack
+    {
+        get
+        {
+            int baseValue = (characterClass != null) ? characterClass.GetFinalAttack(baseAttack) : baseAttack;
+            return baseValue + GetPassiveAttackBonus();
+        }
+    }
+
+    public int Defense
+    {
+        get
+        {
+            int baseValue = (characterClass != null) ? characterClass.GetFinalDefense(baseDefense) : baseDefense;
+            return baseValue + GetPassiveDefenseBonus();
+        }
+    }
+
+    public int Magic
+    {
+        get
+        {
+            int baseValue = (characterClass != null) ? characterClass.GetFinalMagic(baseMagic) : baseMagic;
+            return baseValue + GetPassiveMagicBonus();
+        }
+    }
+
+    public int Agility
+    {
+        get
+        {
+            int baseValue = (characterClass != null) ? characterClass.GetFinalAgility(baseAgility) : baseAgility;
+            return baseValue + GetPassiveAgilityBonus() + GetEquipmentAgilityBonus();
+        }
+    }
+
+    public int Luck
+    {
+        get
+        {
+            int baseValue = (characterClass != null) ? characterClass.GetFinalLuck(baseLuck) : baseLuck;
+            return baseValue + GetPassiveLuckBonus() + GetEquipmentLuckBonus();
+        }
+    }
 
     // 소문자 버전 (GameManager 등 기존 레거시 스크립트 호환용)
     public int attack  => Attack;
@@ -53,6 +134,30 @@ public class PlayerStats : MonoBehaviour
     public int magic   => Magic;
     public int agility => Agility;
     public int luck    => Luck;
+
+    public float GetScaleValue(ScaleStat stat)
+    {
+        switch (stat)
+        {
+            case ScaleStat.Attack:
+                return Attack;
+            case ScaleStat.Defense:
+                return Defense;
+            case ScaleStat.Magic:
+                return Magic;
+            case ScaleStat.Agility:
+                return Agility;
+            case ScaleStat.Luck:
+                return Luck;
+            case ScaleStat.CurrentHPPercent:
+                return maxHP > 0 ? Mathf.Clamp01((float)currentHP / maxHP) : 1f;
+            case ScaleStat.CurrentMPPercent:
+                return maxMP > 0 ? Mathf.Clamp01((float)currentMP / maxMP) : 1f;
+            case ScaleStat.None:
+            default:
+                return 1f;
+        }
+    }
 
     // --- [런타임 데이터 프로퍼티 - SO 실시간 저장] ---
     // HP/MP가 변경될 때마다 SO 에셋에 즉시 저장됩니다
@@ -67,23 +172,25 @@ public class PlayerStats : MonoBehaviour
         set
         {
             int oldValue = (statData != null) ? statData.currentHP : _fallbackCurrentHP;
+            int newValue = Mathf.Clamp(value, 0, maxHP);
 
             // [FIX] 실시간 저장: SO 에셋에 즉시 기록
             if (statData != null)
             {
-                statData.currentHP = value;
-                Debug.Log($"[PlayerStats] ✓ SO 에셋 저장: currentHP = {value}");
-            }
-            else
-            {
-                _fallbackCurrentHP = value;
-                Debug.LogWarning($"[PlayerStats] statData가 없어서 fallback 변수에 저장: currentHP = {value}");
+                statData.currentHP = newValue;
+#if UNITY_EDITOR
+                EditorUtility.SetDirty(statData);
+                AssetDatabase.SaveAssets();
+#endif
+                Debug.Log($"[PlayerStats] ✓ SO 에셋 저장: currentHP = {newValue}");
             }
 
+            _fallbackCurrentHP = newValue;
+
             // [DEBUG] HP 변경 로그
-            if (oldValue != value)
+            if (oldValue != newValue)
             {
-                Debug.Log($"[PlayerStats] {playerName} currentHP 변경: {oldValue} -> {value} (maxHP: {maxHP})");
+                Debug.Log($"[PlayerStats] {playerName} currentHP 변경: {oldValue} -> {newValue} (maxHP: {maxHP})");
 
                 // [DEBUG] 이벤트 구독자 수 확인
                 if (OnStatusChanged != null)
@@ -107,22 +214,25 @@ public class PlayerStats : MonoBehaviour
         set
         {
             int oldValue = (statData != null) ? statData.currentMP : _fallbackCurrentMP;
+            int newValue = Mathf.Clamp(value, 0, maxMP);
+            Debug.Log($"[MP_TRACE] MP set to {newValue} by {gameObject.name}");
 
-            // [FIX] 실시간 저장: SO 에셋에 즉시 기록
             if (statData != null)
             {
-                statData.currentMP = value;
-                Debug.Log($"[PlayerStats] ✓ SO 에셋 저장: currentMP = {value}");
-            }
-            else
-            {
-                _fallbackCurrentMP = value;
+                statData.currentMP = newValue;
+#if UNITY_EDITOR
+                EditorUtility.SetDirty(statData);
+                AssetDatabase.SaveAssets();
+#endif
+                Debug.Log($"[PlayerStats] ✓ SO 에셋 저장: currentMP = {newValue}");
             }
 
+            _fallbackCurrentMP = newValue;
+
             // [DEBUG] MP 변경 로그
-            if (oldValue != value)
+            if (oldValue != newValue)
             {
-                Debug.Log($"[PlayerStats] {playerName} currentMP 변경: {oldValue} -> {value} (maxMP: {maxMP})");
+                Debug.Log($"[PlayerStats] {playerName} currentMP 변경: {oldValue} -> {newValue} (maxMP: {maxMP})");
             }
 
             // [NEW] MP 변경 시 이벤트 발동
@@ -158,17 +268,253 @@ public class PlayerStats : MonoBehaviour
         }
     }
 
+    // --- [패시브 보너스 계산 메서드] ---
+    private enum PassiveBonusStat { HP, MP, Attack, Defense, Magic, Agility, Luck }
+
+    private int GetPassiveBonus(PassiveBonusStat stat)
+    {
+        if (statData == null || statData.equippedPassives == null) return 0;
+        int total = 0;
+
+        foreach (var passive in statData.equippedPassives)
+        {
+            if (passive == null || !passive.IsPassive) continue;
+
+            bool usedEffect = false;
+            if (passive.Effects != null && passive.Effects.Count > 0)
+            {
+                foreach (var effect in passive.Effects)
+                {
+                    if (effect == null) continue;
+
+                    int amount = Mathf.RoundToInt(effect.effectAmount);
+                    switch (stat)
+                    {
+                        case PassiveBonusStat.HP:
+                            if (effect.effectType == EffectType.Recovery &&
+                                (effect.recoveryTarget == RecoveryTarget.HP || effect.recoveryTarget == RecoveryTarget.Both))
+                            {
+                                total += amount;
+                                usedEffect = true;
+                            }
+                            break;
+                        case PassiveBonusStat.MP:
+                            if (effect.effectType == EffectType.Recovery &&
+                                (effect.recoveryTarget == RecoveryTarget.MP || effect.recoveryTarget == RecoveryTarget.Both))
+                            {
+                                total += amount;
+                                usedEffect = true;
+                            }
+                            break;
+                        case PassiveBonusStat.Attack:
+                            if (effect.effectType == EffectType.BuffAttack ||
+                                effect.effectType == EffectType.PassiveAttack)
+                            {
+                                total += amount;
+                                usedEffect = true;
+                            }
+                            break;
+                        case PassiveBonusStat.Defense:
+                            if (effect.effectType == EffectType.BuffDefense ||
+                                effect.effectType == EffectType.PassiveDefense)
+                            {
+                                total += amount;
+                                usedEffect = true;
+                            }
+                            break;
+                        case PassiveBonusStat.Magic:
+                            if (effect.effectType == EffectType.PassiveMagic)
+                            {
+                                total += amount;
+                                usedEffect = true;
+                            }
+                            break;
+                        case PassiveBonusStat.Agility:
+                            if (effect.effectType == EffectType.PassiveAgility)
+                            {
+                                total += amount;
+                                usedEffect = true;
+                            }
+                            break;
+                        case PassiveBonusStat.Luck:
+                            if (effect.effectType == EffectType.PassiveLuck)
+                            {
+                                total += amount;
+                                usedEffect = true;
+                            }
+                            break;
+                    }
+                }
+            }
+
+            if (!usedEffect)
+            {
+                int fallbackAmount = Mathf.RoundToInt(passive.effectAmount);
+                switch (stat)
+                {
+                    case PassiveBonusStat.Attack:
+                        if (passive.scalingStat == ScaleStat.Attack) total += fallbackAmount;
+                        break;
+                    case PassiveBonusStat.Defense:
+                        if (passive.scalingStat == ScaleStat.Defense) total += fallbackAmount;
+                        break;
+                    case PassiveBonusStat.Magic:
+                        if (passive.scalingStat == ScaleStat.Magic) total += fallbackAmount;
+                        break;
+                    case PassiveBonusStat.Agility:
+                        if (passive.scalingStat == ScaleStat.Agility) total += fallbackAmount;
+                        break;
+                    case PassiveBonusStat.Luck:
+                        if (passive.scalingStat == ScaleStat.Luck) total += fallbackAmount;
+                        break;
+                }
+            }
+        }
+
+        return total;
+    }
+
+    private int GetPassiveHPBonus() => GetPassiveBonus(PassiveBonusStat.HP);
+    private int GetPassiveMPBonus() => GetPassiveBonus(PassiveBonusStat.MP);
+    private int GetPassiveAttackBonus() => GetPassiveBonus(PassiveBonusStat.Attack);
+    private int GetPassiveDefenseBonus() => GetPassiveBonus(PassiveBonusStat.Defense);
+    private int GetPassiveMagicBonus() => GetPassiveBonus(PassiveBonusStat.Magic);
+    private int GetPassiveAgilityBonus() => GetPassiveBonus(PassiveBonusStat.Agility);
+    private int GetPassiveLuckBonus() => GetPassiveBonus(PassiveBonusStat.Luck);
+
+    /// <summary>
+    /// 패시브 스킬로부터 명중률 보정치를 가져옵니다 (0.0 ~ 1.0 범위).
+    /// </summary>
+    public float GetPassiveAccuracyBonus()
+    {
+        if (statData == null || statData.equippedPassives == null) return 0f;
+        float total = 0f;
+
+        foreach (var passive in statData.equippedPassives)
+        {
+            if (passive == null || !passive.IsPassive) continue;
+
+            if (passive.Effects != null && passive.Effects.Count > 0)
+            {
+                foreach (var effect in passive.Effects)
+                {
+                    if (effect == null) continue;
+                    if (effect.effectType == EffectType.PassiveAccuracy)
+                    {
+                        // effectAmount를 명중률 보정치로 사용 (예: 0.1 = 10% 증가)
+                        total += effect.effectAmount;
+                    }
+                }
+            }
+        }
+
+        return total;
+    }
+
+    /// <summary>
+    /// 장비로부터 민첩 보정치를 가져옵니다.
+    /// </summary>
+    public int GetEquipmentAgilityBonus()
+    {
+        EquipmentManager equipmentManager = GetComponent<EquipmentManager>();
+        if (equipmentManager == null) return 0;
+
+        int total = 0;
+        var equippedItems = equipmentManager.GetEquippedItems();
+        foreach (var item in equippedItems)
+        {
+            if (item != null)
+            {
+                total += item.agiBonus;
+            }
+        }
+        return total;
+    }
+
+    /// <summary>
+    /// 장비로부터 행운 보정치를 가져옵니다.
+    /// </summary>
+    public int GetEquipmentLuckBonus()
+    {
+        EquipmentManager equipmentManager = GetComponent<EquipmentManager>();
+        if (equipmentManager == null) return 0;
+
+        int total = 0;
+        var equippedItems = equipmentManager.GetEquippedItems();
+        foreach (var item in equippedItems)
+        {
+            if (item != null)
+            {
+                total += item.luckBonus;
+            }
+        }
+        return total;
+    }
+
+    /// <summary>
+    /// 장비로부터 명중률 보정치를 가져옵니다 (0.0 ~ 1.0 범위).
+    /// </summary>
+    public float GetEquipmentAccuracyBonus()
+    {
+        EquipmentManager equipmentManager = GetComponent<EquipmentManager>();
+        if (equipmentManager == null) return 0f;
+
+        float total = 0f;
+        var equippedItems = equipmentManager.GetEquippedItems();
+        foreach (var item in equippedItems)
+        {
+            if (item != null)
+            {
+                total += item.accuracyBonus;
+            }
+        }
+        return total;
+    }
+
+    /// <summary>
+    /// 스탯 변경 이벤트를 발동합니다. (외부에서 호출 가능)
+    /// 장비 장착/해제 등으로 스탯이 변경되었을 때 UI를 업데이트하기 위해 사용합니다.
+    /// </summary>
+    public void NotifyStatusChanged()
+    {
+        OnStatusChanged?.Invoke();
+    }
+
     // --- [UI용 보너스 계산 메서드] ---
     // HP/MP 보너스 (최종값 - 기본값)
     public int GetHPBonus() => maxHP - baseHP;
     public int GetMPBonus() => maxMP - baseMP;
 
-    // 스탯 보너스 (직업 보정치)
-    public int GetAttackBonus() => (characterClass != null) ? characterClass.attackBonus : 0;
-    public int GetDefenseBonus() => (characterClass != null) ? characterClass.defenseBonus : 0;
-    public int GetMagicBonus() => (characterClass != null) ? characterClass.magicBonus : 0;
-    public int GetAgilityBonus() => (characterClass != null) ? characterClass.agilityBonus : 0;
-    public int GetLuckBonus() => (characterClass != null) ? characterClass.luckBonus : 0;
+    // 스탯 보너스 (직업 보정치 + 패시브 보너스)
+    public int GetAttackBonus()
+    {
+        int jobBonus = (characterClass != null) ? characterClass.attackBonus : 0;
+        return jobBonus + GetPassiveAttackBonus();
+    }
+
+    public int GetDefenseBonus()
+    {
+        int jobBonus = (characterClass != null) ? characterClass.defenseBonus : 0;
+        return jobBonus + GetPassiveDefenseBonus();
+    }
+
+    public int GetMagicBonus()
+    {
+        int jobBonus = (characterClass != null) ? characterClass.magicBonus : 0;
+        return jobBonus + GetPassiveMagicBonus();
+    }
+
+    public int GetAgilityBonus()
+    {
+        int jobBonus = (characterClass != null) ? characterClass.agilityBonus : 0;
+        return jobBonus + GetPassiveAgilityBonus();
+    }
+
+    public int GetLuckBonus()
+    {
+        int jobBonus = (characterClass != null) ? characterClass.luckBonus : 0;
+        return jobBonus + GetPassiveLuckBonus();
+    }
 
     [Header("5. 레벨 시스템")]
     public int maxExp = 100;
@@ -177,8 +523,14 @@ public class PlayerStats : MonoBehaviour
     public bool isDefending = false;
     public float defenceReduction = 0.4f;
     public float defenseBuffAmount = 0f;
-    public bool isIgnited = false;
-    public int igniteTurnsRemaining = 0;
+
+    [Header("7. Curse System (저주 시스템)")]
+    [Tooltip("현재 걸린 저주 리스트 (런타임에서 자동 관리)")]
+    public List<CurseInstance> activeCurses = new List<CurseInstance>();
+
+    // Legacy compatibility (for old Ignite system)
+    public bool isIgnited => HasCurse(CurseType.Ignite);
+    public int igniteTurnsRemaining => GetCurseRemainingTurns(CurseType.Ignite);
 
     void Awake()
     {
@@ -194,75 +546,86 @@ public class PlayerStats : MonoBehaviour
 
         Debug.Log($"[PlayerStats] {playerName} 초기화 시작... (InstanceID={GetInstanceID()})");
 
-        // [FIX] statData 연결 확인
+        // [CRITICAL] statData 연결 확인
         if (statData == null)
         {
-            Debug.LogWarning($"[PlayerStats] {playerName}의 statData가 할당되지 않았습니다! fallback 변수를 사용합니다.");
-            _fallbackCurrentHP = 0;
-            _fallbackCurrentMP = 0;
+            Debug.LogError($"[PlayerStats] {playerName}의 statData가 할당되지 않았습니다! HeroData.asset을 연결하세요!");
+            _fallbackCurrentHP = baseHP;
+            _fallbackCurrentMP = baseMP;
             _fallbackLevel = 1;
             _fallbackExp = 0;
+            return;
+        }
+
+        Debug.Log($"[PlayerStats] ✓ statData 에셋 연결됨: {statData.name}");
+
+        // [NEW] 씬 간 자동 동기화: HeroData의 currentJob을 읽어 characterClass에 할당
+        if (statData.currentJob != null)
+        {
+            characterClass = statData.currentJob;
+            Debug.Log($"[PlayerStats] ✓ HeroData에서 직업 로드: {characterClass.className}");
+            Debug.Log($"[PlayerStats]   - Attack: {characterClass.attackBonus:+#;-#;0}, Defense: {characterClass.defenseBonus:+#;-#;0}, Magic: {characterClass.magicBonus:+#;-#;0}");
+            Debug.Log($"[PlayerStats]   - HP Multiplier: {characterClass.hpMultiplier:P0}, MP Multiplier: {characterClass.mpMultiplier:P0}");
         }
         else
         {
-            Debug.Log($"[PlayerStats] ✓ statData 에셋 연결됨: {statData.name}");
-            Debug.Log($"[PlayerStats] SO 현재값: HP={statData.currentHP}, MP={statData.currentMP}, Level={statData.level}");
-        }
-
-        // [FIX] 직업이 설정되지 않았으면 기본 Warrior 직업 강제 설정
-        if (characterClass == null)
-        {
-            Debug.LogWarning($"[PlayerStats] {playerName}의 직업이 설정되지 않았습니다! 기본 Warrior 직업을 설정합니다.");
+            Debug.LogWarning($"[PlayerStats] HeroData에 직업이 설정되지 않았습니다! 기본 Warrior 직업을 설정합니다.");
             SetClass("Warrior");
 
             if (characterClass != null)
             {
-                Debug.Log($"[PlayerStats] ✓ {playerName}에 Warrior 직업이 자동 설정되었습니다. Attack: {Attack} (base: {baseAttack} + bonus: {GetAttackBonus()})");
+                Debug.Log($"[PlayerStats] ✓ {playerName}에 Warrior 직업이 자동 설정되었습니다.");
             }
             else
             {
                 Debug.LogError($"[PlayerStats] ✗ Warrior 직업 설정 실패! CharacterClassDatabase.asset 파일이 Resources 폴더에 있는지 확인하세요.");
             }
         }
-        else
-        {
-            Debug.Log($"[PlayerStats] {playerName} 직업 확인: {characterClass.className}, Attack: {Attack} (base: {baseAttack} + bonus: {GetAttackBonus()})");
-        }
 
-        // [FIX] 자동 계산: BaseHP * JobModifier = MaxHP
-        Debug.Log($"[PlayerStats] 자동 계산: BaseHP({baseHP}) * JobModifier({characterClass?.hpMultiplier ?? 1.0f}) = MaxHP({maxHP})");
+        // [DEBUG] 스탯 계산 확인
+        Debug.Log($"[PlayerStats] 최종 스탯 계산:");
+        Debug.Log($"[PlayerStats]   - MaxHP: {maxHP} = BaseHP({baseHP}) × Multiplier({characterClass?.hpMultiplier ?? 1.0f}) + Passive({GetPassiveHPBonus()})");
+        Debug.Log($"[PlayerStats]   - MaxMP: {maxMP} = BaseMP({baseMP}) × Multiplier({characterClass?.mpMultiplier ?? 1.0f}) + Passive({GetPassiveMPBonus()})");
+        Debug.Log($"[PlayerStats]   - Attack: {Attack} = Base({baseAttack}) + Job({characterClass?.attackBonus ?? 0}) + Passive({GetPassiveAttackBonus()})");
 
         // [FIX] 조건부 초기화: 에셋에 저장된 HP가 0이거나 비정상일 때만 maxHP로 초기화
-        int currentHPFromAsset = (statData != null) ? statData.currentHP : 0;
-        int currentMPFromAsset = (statData != null) ? statData.currentMP : 0;
+        int currentHPFromAsset = statData.currentHP;
+        int currentMPFromAsset = statData.currentMP;
 
-        // HP 조건: 0 이하이거나 maxHP보다 크면 초기화
-        if (currentHPFromAsset <= 0 || currentHPFromAsset > maxHP)
+        if (_isFirstLaunch)
         {
-            Debug.Log($"[PlayerStats] SO의 HP가 비정상({currentHPFromAsset}) → maxHP({maxHP})로 초기화");
+            Debug.Log("[PlayerStats] 첫 실행 감지 → HP/MP 풀 초기화");
             currentHP = maxHP;
+            currentMP = maxMP;
+            _isFirstLaunch = false;
         }
-        else
+        // HP 조건: 유효 범위면 유지, 그렇지 않으면 새 게임으로 초기화
+        else if (currentHPFromAsset > 0 && currentHPFromAsset <= maxHP)
         {
             Debug.Log($"[PlayerStats] SO에서 로드한 HP 유지: {currentHPFromAsset}/{maxHP}");
-            // currentHP는 이미 SO에서 getter로 읽어오므로 별도 설정 불필요
-        }
-
-        // MP 조건: 0 미만이거나 maxMP보다 크면 초기화
-        if (currentMPFromAsset < 0 || currentMPFromAsset > maxMP)
-        {
-            Debug.Log($"[PlayerStats] SO의 MP가 비정상({currentMPFromAsset}) → maxMP({maxMP})로 초기화");
-            currentMP = maxMP;
         }
         else
         {
+            Debug.Log($"[PlayerStats] SO의 HP가 비정상({currentHPFromAsset}) → 새 게임으로 간주, maxHP({maxHP})로 초기화");
+            currentHP = maxHP;
+        }
+
+        // MP 조건: 유효 범위면 유지, 그렇지 않으면 새 게임으로 초기화
+        if (currentMPFromAsset >= 0 && currentMPFromAsset <= maxMP)
+        {
             Debug.Log($"[PlayerStats] SO에서 로드한 MP 유지: {currentMPFromAsset}/{maxMP}");
+        }
+        else
+        {
+            Debug.Log($"[PlayerStats] SO의 MP가 비정상({currentMPFromAsset}) → 새 게임으로 간주, maxMP({maxMP})로 초기화");
+            currentMP = maxMP;
         }
 
         _isInitialized = true; // 초기화 완료 플래그
 
         Debug.Log($"[PlayerStats] ===== {playerName} 초기화 완료! =====");
         Debug.Log($"[PlayerStats] InstanceID: {GetInstanceID()}");
+        Debug.Log($"[PlayerStats] 직업: {characterClass?.className ?? "None"}");
         Debug.Log($"[PlayerStats] HP: {currentHP}/{maxHP}");
         Debug.Log($"[PlayerStats] MP: {currentMP}/{maxMP}");
         Debug.Log($"[PlayerStats] Attack: {Attack} (base: {baseAttack} + bonus: {GetAttackBonus()})");
@@ -304,8 +667,18 @@ public class PlayerStats : MonoBehaviour
 
             Debug.Log($"[PlayerStats] 직업 변경 전 - HP: {currentHP}/{maxHP} ({hpRatio:P0}), MP: {currentMP}/{maxMP} ({mpRatio:P0})");
 
-            // 직업 변경
+            // [NEW] 직업 변경 - characterClass와 statData 모두 업데이트
             characterClass = newClass;
+
+            if (statData != null)
+            {
+                statData.currentJob = newClass;
+#if UNITY_EDITOR
+                UnityEditor.EditorUtility.SetDirty(statData);
+                UnityEditor.AssetDatabase.SaveAssets();
+#endif
+                Debug.Log($"[PlayerStats] ✓ HeroData에 직업 저장: {newClass.className}");
+            }
 
             // [FIX] 변경된 maxHP/maxMP에 동일한 비율 적용
             currentHP = Mathf.RoundToInt(maxHP * hpRatio);
@@ -315,7 +688,9 @@ public class PlayerStats : MonoBehaviour
             currentHP = Mathf.Clamp(currentHP, 1, maxHP);
             currentMP = Mathf.Clamp(currentMP, 0, maxMP);
 
-            Debug.Log($"[PlayerStats] {playerName}의 직업이 {className}으로 변경되었습니다. HP: {currentHP}/{maxHP}, MP: {currentMP}/{maxMP}");
+            Debug.Log($"[PlayerStats] {playerName}의 직업이 {className}으로 변경되었습니다.");
+            Debug.Log($"[PlayerStats]   - HP: {currentHP}/{maxHP}, MP: {currentMP}/{maxMP}");
+            Debug.Log($"[PlayerStats]   - Attack: {Attack}, Defense: {Defense}, Magic: {Magic}");
         }
         else
         {
@@ -339,7 +714,7 @@ public class PlayerStats : MonoBehaviour
             float totalReduction = isDefending ? defenceReduction : 0f;
             totalReduction += (defenseBuffAmount / 100f);
             finalDamage = Mathf.Max(1, Mathf.FloorToInt(damage * (1f - totalReduction)));
-            isDefending = false; 
+            isDefending = false;
             defenseBuffAmount = 0f;
         }
         currentHP = Mathf.Clamp(currentHP - finalDamage, 0, maxHP);
@@ -350,24 +725,222 @@ public class PlayerStats : MonoBehaviour
     public void Heal(int amount) { currentHP = Mathf.Min(currentHP + amount, maxHP); }
     public void UseMP(int amount) { currentMP = Mathf.Clamp(currentMP - amount, 0, maxMP); }
     void Die() { Debug.Log($"{playerName} 사망"); }
+    
+    // --- [Curse System Methods] ---
 
-    public void SetIgnited(bool ignited, int turns = 5)
+    /// <summary>
+    /// 저주를 적용합니다
+    /// </summary>
+    public void ApplyCurse(CurseData curseData)
     {
-        isIgnited = ignited;
-        if (ignited) igniteTurnsRemaining = Mathf.Max(igniteTurnsRemaining, turns);
-        else igniteTurnsRemaining = 0;
+        if (curseData == null)
+        {
+            Debug.LogWarning($"[PlayerStats] {playerName}에게 null Curse를 적용하려 했습니다.");
+            return;
+        }
+
+        // Luck 기반 저주 회피 (미세한 확률 보너스)
+        float resistChance = Mathf.Clamp(Luck * 0.2f, 0f, 25f);
+        if (resistChance > 0f && UnityEngine.Random.Range(0f, 100f) < resistChance)
+        {
+            Debug.Log($"[Curse] {playerName}가 Luck 보너스로 저주를 회피했습니다. (저항 확률: {resistChance:0.0}%)");
+            return;
+        }
+
+        // 이미 같은 타입의 저주가 걸려있는지 확인
+        CurseInstance existingCurse = activeCurses.Find(c => c.curseData.type == curseData.type);
+
+        if (existingCurse != null)
+        {
+            // 기존 저주의 duration을 갱신 (더 긴 것으로)
+            existingCurse.remainingTurns = Mathf.Max(existingCurse.remainingTurns, curseData.duration);
+            Debug.Log($"[Curse] {playerName}의 {curseData.curseName} 지속시간 갱신: {existingCurse.remainingTurns}턴");
+        }
+        else
+        {
+            // 새로운 저주 추가
+            CurseInstance newCurse = new CurseInstance(curseData);
+            activeCurses.Add(newCurse);
+            Debug.Log($"[Curse] {playerName}에게 {curseData.curseName} 적용! (지속: {curseData.duration}턴)");
+
+            // VFX 생성 (선택사항)
+            if (curseData.curseVFX != null)
+            {
+                newCurse.vfxInstance = Instantiate(curseData.curseVFX, transform);
+            }
+        }
+
+        // 이벤트 발동
+        OnStatusChanged?.Invoke();
     }
 
+    /// <summary>
+    /// 특정 타입의 저주를 제거합니다
+    /// </summary>
+    public void RemoveCurse(CurseType type)
+    {
+        CurseInstance curse = activeCurses.Find(c => c.curseData.type == type);
+        if (curse != null)
+        {
+            // VFX 제거
+            if (curse.vfxInstance != null)
+            {
+                Destroy(curse.vfxInstance);
+            }
+
+            activeCurses.Remove(curse);
+            Debug.Log($"[Curse] {playerName}의 {curse.curseData.curseName} 해제됨");
+            OnStatusChanged?.Invoke();
+        }
+    }
+
+    /// <summary>
+    /// 모든 저주를 제거합니다
+    /// </summary>
+    public void RemoveAllCurses()
+    {
+        foreach (var curse in activeCurses)
+        {
+            if (curse.vfxInstance != null)
+            {
+                Destroy(curse.vfxInstance);
+            }
+        }
+        activeCurses.Clear();
+        Debug.Log($"[Curse] {playerName}의 모든 저주 해제됨");
+        OnStatusChanged?.Invoke();
+    }
+
+    /// <summary>
+    /// 특정 타입의 저주가 걸려있는지 확인
+    /// </summary>
+    public bool HasCurse(CurseType type)
+    {
+        return activeCurses.Exists(c => c.curseData.type == type);
+    }
+
+    /// <summary>
+    /// 특정 타입의 저주 남은 턴 수 반환
+    /// </summary>
+    public int GetCurseRemainingTurns(CurseType type)
+    {
+        CurseInstance curse = activeCurses.Find(c => c.curseData.type == type);
+        return curse != null ? curse.remainingTurns : 0;
+    }
+
+    /// <summary>
+    /// 턴 종료 시 호출: 모든 저주의 DoT 데미지를 적용하고 duration 감소
+    /// </summary>
+    public void ProcessCursesEndOfTurn()
+    {
+        if (activeCurses.Count == 0 || currentHP <= 0) return;
+
+        Debug.Log($"[Curse] {playerName}의 저주 처리 시작 (저주 수: {activeCurses.Count})");
+
+        // 역순으로 순회하여 안전하게 제거
+        for (int i = activeCurses.Count - 1; i >= 0; i--)
+        {
+            CurseInstance curse = activeCurses[i];
+
+            // DoT 데미지 적용
+            if (curse.curseData.dotDamagePercent > 0)
+            {
+                int dotDamage = Mathf.Max(1, Mathf.FloorToInt(maxHP * (curse.curseData.dotDamagePercent / 100f)));
+                currentHP = Mathf.Max(0, currentHP - dotDamage);
+                Debug.Log($"[Curse] {playerName}이(가) {curse.curseData.curseName}로 {dotDamage} 데미지를 입었습니다. (남은 HP: {currentHP})");
+            }
+
+            // Duration 감소
+            curse.remainingTurns--;
+
+            // Duration이 0이 되면 저주 제거
+            if (curse.remainingTurns <= 0)
+            {
+                Debug.Log($"[Curse] {curse.curseData.curseName} 효과 종료");
+                if (curse.vfxInstance != null)
+                {
+                    Destroy(curse.vfxInstance);
+                }
+                activeCurses.RemoveAt(i);
+            }
+        }
+
+        // 사망 체크
+        if (currentHP <= 0)
+        {
+            Die();
+        }
+
+        OnStatusChanged?.Invoke();
+    }
+
+    /// <summary>
+    /// 저주로 인한 스탯 디버프를 계산 (총합)
+    /// </summary>
+    public float GetCurseAttackDebuff()
+    {
+        float total = 0f;
+        foreach (var curse in activeCurses)
+        {
+            total += curse.curseData.attackDebuff;
+        }
+        return Mathf.Min(total, 100f); // 최대 100%
+    }
+
+    public float GetCurseDefenseDebuff()
+    {
+        float total = 0f;
+        foreach (var curse in activeCurses)
+        {
+            total += curse.curseData.defenseDebuff;
+        }
+        return Mathf.Min(total, 100f);
+    }
+
+    /// <summary>
+    /// 행동 불가 상태인지 확인 (Stun 등)
+    /// </summary>
+    public bool IsStunned()
+    {
+        return activeCurses.Exists(c => c.curseData.preventAction);
+    }
+
+    /// <summary>
+    /// 스킬 사용 불가 상태인지 확인 (Silence 등)
+    /// </summary>
+    public bool IsSilenced()
+    {
+        return activeCurses.Exists(c => c.curseData.preventSkillUse);
+    }
+
+    // Legacy compatibility method
+    [System.Obsolete("Use ApplyCurse with CurseData instead")]
+    public void SetIgnited(bool ignited, int turns = 5)
+    {
+        if (ignited)
+        {
+            // Ignite curse를 찾아서 적용 (없으면 경고)
+            CurseData igniteCurse = Resources.Load<CurseData>("Curses/Ignite");
+            if (igniteCurse != null)
+            {
+                ApplyCurse(igniteCurse);
+            }
+            else
+            {
+                Debug.LogWarning("[PlayerStats] Ignite CurseData를 찾을 수 없습니다. Resources/Curses/Ignite.asset을 생성하세요.");
+            }
+        }
+        else
+        {
+            RemoveCurse(CurseType.Ignite);
+        }
+    }
+
+    // Legacy compatibility method
+    [System.Obsolete("Use ProcessCursesEndOfTurn instead")]
     public void ProcessIgniteDamage()
     {
-        if (isIgnited && igniteTurnsRemaining > 0 && currentHP > 0)
-        {
-            int igniteDamage = Mathf.Max(1, Mathf.FloorToInt(maxHP * 0.05f));
-            currentHP = Mathf.Max(0, currentHP - igniteDamage);
-            igniteTurnsRemaining--;
-            if (igniteTurnsRemaining <= 0) isIgnited = false;
-            if (currentHP <= 0) Die();
-        }
+        ProcessCursesEndOfTurn();
     }
 
     public void AddExp(int amount)
@@ -380,8 +953,12 @@ public class PlayerStats : MonoBehaviour
     {
         level++;
         exp -= maxExp;
-        maxExp = level * 100; 
+        maxExp = level * 100;
         currentHP = maxHP;
         currentMP = maxMP;
     }
 }
+
+
+
+

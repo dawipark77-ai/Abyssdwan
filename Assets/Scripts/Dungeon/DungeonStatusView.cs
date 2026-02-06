@@ -41,8 +41,13 @@ public class DungeonStatusView : MonoBehaviour
         // [NEW] 이벤트 구독
         PlayerStats.OnStatusChanged += UpdateUI;
 
-        // [FIX] 맵 씬 활성화 시 무조건 데이터 새로고침
+        // [FIX] 맵 씬 활성화 시 SO 에셋 값을 가장 먼저 확인
         Debug.Log("[DungeonStatusView] 강제 데이터 갱신 시작...");
+        PlayerStats playerInScene = FindFirstObjectByType<PlayerStats>();
+        if (playerInScene != null && playerInScene.statData != null)
+        {
+            Debug.Log($"[DungeonStatusView] OnEnable statData 확인: {playerInScene.statData.name} (HP={playerInScene.statData.currentHP}, MP={playerInScene.statData.currentMP})");
+        }
         UpdateUI();
         Invoke(nameof(UpdateUI), 0.1f);  // 0.1초 후 다시 갱신 (초기화 완료 대기)
         Invoke(nameof(UpdateUI), 0.3f);  // 0.3초 후 한 번 더 갱신 (확실한 동기화)
@@ -83,21 +88,16 @@ public class DungeonStatusView : MonoBehaviour
         Debug.Log($"[DungeonStatusView] ✓ statData 연결됨: {playerInScene.statData.name}");
 
         // [FIX] 데이터 소스 고정: SO 에셋을 최우선으로 읽기
-        int hp = playerInScene.statData.currentHP;      // SO에서 직접 읽기
+        int hp = playerInScene.currentHP;              // 프로퍼티 경유
         int maxHp = playerInScene.maxHP;                 // 계산된 값
-        int mp = playerInScene.statData.currentMP;      // SO에서 직접 읽기
+        int mp = playerInScene.currentMP;              // 프로퍼티 경유
         int maxMp = playerInScene.maxMP;                 // 계산된 값
 
         Debug.Log($"[DungeonStatusView] SO에서 직접 읽은 데이터:");
         Debug.Log($"  └─ HP: {hp}/{maxHp}");
         Debug.Log($"  └─ MP: {mp}/{maxMp}");
 
-        // GameManager에도 동기화 (저장용)
-        var gm = GameManager.EnsureInstance();
-        if (gm != null)
-        {
-            gm.SaveFromPlayer(playerInScene);
-        }
+        // SO가 단일 소스이므로 GameManager 저장은 생략
 
         // 슬롯이 비어있으면 리턴
         if (slots.Count == 0)

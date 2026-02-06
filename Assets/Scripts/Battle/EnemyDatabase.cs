@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 
 [CreateAssetMenu(fileName = "EnemyDatabase", menuName = "Battle/EnemyDatabase")]
@@ -19,13 +19,14 @@ public class EnemyDatabase : ScriptableObject
         {
             if (enemyPrefabs.Count > 0)
             {
-                GameObject randomEnemy = enemyPrefabs[Random.Range(0, enemyPrefabs.Count)];
+                GameObject randomEnemy = enemyPrefabs[UnityEngine.Random.Range(0, enemyPrefabs.Count)];
                 result.Add(randomEnemy);
             }
         }
         return result;
     }
 }
+
 
 
 

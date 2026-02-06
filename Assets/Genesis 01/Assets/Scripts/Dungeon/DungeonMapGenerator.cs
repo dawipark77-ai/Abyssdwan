@@ -1,13 +1,13 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 
 /// <summary>
-/// 던전 맵 생성기
-/// 20x20 크기의 미로 던전을 생성
+/// ?섏쟾 留??앹꽦湲?
+/// 20x20 ?ш린??誘몃줈 ?섏쟾???앹꽦
 /// </summary>
 public class DungeonMapGenerator : MonoBehaviour
 {
-    [Header("맵 설정")]
+    [Header("留??ㅼ젙")]
     public int mapWidth = 20;
     public int mapHeight = 20;
     
@@ -16,13 +16,13 @@ public class DungeonMapGenerator : MonoBehaviour
     private Vector2Int exitPosition;
     
     /// <summary>
-    /// 던전 맵 생성
+    /// ?섏쟾 留??앹꽦
     /// </summary>
     public DungeonMapTile[,] GenerateMap()
     {
         map = new DungeonMapTile[mapWidth, mapHeight];
         
-        // 모든 타일을 벽으로 초기화
+        // 紐⑤뱺 ??쇱쓣 踰쎌쑝濡?珥덇린??
         for (int x = 0; x < mapWidth; x++)
         {
             for (int y = 0; y < mapHeight; y++)
@@ -31,41 +31,41 @@ public class DungeonMapGenerator : MonoBehaviour
             }
         }
         
-        // 미로 생성 (Random Walk 알고리즘)
+        // 誘몃줈 ?앹꽦 (Random Walk ?뚭퀬由ъ쬁)
         GenerateMaze();
         
-        // 시작점과 탈출점 설정
+        // ?쒖옉?먭낵 ?덉텧???ㅼ젙
         SetStartAndExit();
         
         return map;
     }
     
     /// <summary>
-    /// 미로 생성 (Random Walk)
+    /// 誘몃줈 ?앹꽦 (Random Walk)
     /// </summary>
     private void GenerateMaze()
     {
-        // 시작 위치 (홀수 좌표로 설정하여 경계와 겹치지 않게)
+        // ?쒖옉 ?꾩튂 (???醫뚰몴濡??ㅼ젙?섏뿬 寃쎄퀎? 寃뱀튂吏 ?딄쾶)
         int startX = 1;
         int startY = 1;
         
         Vector2Int current = new Vector2Int(startX, startY);
         map[current.x, current.y].tileType = DungeonMapTile.TileType.Path;
         
-        // 방문한 위치 추적
+        // 諛⑸Ц???꾩튂 異붿쟻
         HashSet<Vector2Int> visited = new HashSet<Vector2Int>();
         visited.Add(current);
         
-        // 경로 스택 (백트래킹용)
+        // 寃쎈줈 ?ㅽ깮 (諛깊듃?섑궧??
         Stack<Vector2Int> pathStack = new Stack<Vector2Int>();
         pathStack.Push(current);
         
-        // 이동 방향 (상하좌우)
+        // ?대룞 諛⑺뼢 (?곹븯醫뚯슦)
         Vector2Int[] directions = {
-            new Vector2Int(0, 2),  // 위
-            new Vector2Int(0, -2), // 아래
-            new Vector2Int(2, 0),  // 오른쪽
-            new Vector2Int(-2, 0)  // 왼쪽
+            new Vector2Int(0, 2),  // ??
+            new Vector2Int(0, -2), // ?꾨옒
+            new Vector2Int(2, 0),  // ?ㅻⅨ履?
+            new Vector2Int(-2, 0)  // ?쇱そ
         };
         
         int maxIterations = (mapWidth * mapHeight) / 2;
@@ -75,7 +75,7 @@ public class DungeonMapGenerator : MonoBehaviour
         {
             iterations++;
             
-            // 현재 위치에서 이동 가능한 방향 찾기
+            // ?꾩옱 ?꾩튂?먯꽌 ?대룞 媛?ν븳 諛⑺뼢 李얘린
             List<Vector2Int> availableDirections = new List<Vector2Int>();
             
             foreach (Vector2Int dir in directions)
@@ -83,7 +83,7 @@ public class DungeonMapGenerator : MonoBehaviour
                 Vector2Int next = current + dir;
                 Vector2Int wall = current + dir / 2;
                 
-                // 경계 체크 및 미방문 체크
+                // 寃쎄퀎 泥댄겕 諛?誘몃갑臾?泥댄겕
                 if (IsValidPosition(next) && !visited.Contains(next))
                 {
                     availableDirections.Add(dir);
@@ -92,12 +92,12 @@ public class DungeonMapGenerator : MonoBehaviour
             
             if (availableDirections.Count > 0)
             {
-                // 랜덤한 방향 선택
-                Vector2Int chosenDir = availableDirections[Random.Range(0, availableDirections.Count)];
+                // ?쒕뜡??諛⑺뼢 ?좏깮
+                Vector2Int chosenDir = availableDirections[UnityEngine.Random.Range(0, availableDirections.Count)];
                 Vector2Int next = current + chosenDir;
                 Vector2Int wall = current + chosenDir / 2;
                 
-                // 벽을 길로 만들고 다음 위치도 길로
+                // 踰쎌쓣 湲몃줈 留뚮뱾怨??ㅼ쓬 ?꾩튂??湲몃줈
                 map[wall.x, wall.y].tileType = DungeonMapTile.TileType.Path;
                 map[next.x, next.y].tileType = DungeonMapTile.TileType.Path;
                 
@@ -107,7 +107,7 @@ public class DungeonMapGenerator : MonoBehaviour
             }
             else
             {
-                // 더 이상 갈 곳이 없으면 백트래킹
+                // ???댁긽 媛?怨녹씠 ?놁쑝硫?諛깊듃?섑궧
                 if (pathStack.Count > 0)
                 {
                     current = pathStack.Pop();
@@ -115,25 +115,25 @@ public class DungeonMapGenerator : MonoBehaviour
             }
         }
         
-        // 추가 경로 생성 (연결성 향상)
+        // 異붽? 寃쎈줈 ?앹꽦 (?곌껐???μ긽)
         AddExtraPaths(visited);
     }
     
     /// <summary>
-    /// 추가 경로 생성 (던전을 더 복잡하게)
+    /// 異붽? 寃쎈줈 ?앹꽦 (?섏쟾????蹂듭옟?섍쾶)
     /// </summary>
     private void AddExtraPaths(HashSet<Vector2Int> visited)
     {
-        int extraPaths = (mapWidth * mapHeight) / 20; // 약 5% 추가 경로
+        int extraPaths = (mapWidth * mapHeight) / 20; // ??5% 異붽? 寃쎈줈
         
         for (int i = 0; i < extraPaths; i++)
         {
-            int x = Random.Range(1, mapWidth - 1);
-            int y = Random.Range(1, mapHeight - 1);
+            int x = UnityEngine.Random.Range(1, mapWidth - 1);
+            int y = UnityEngine.Random.Range(1, mapHeight - 1);
             
             if (map[x, y].tileType == DungeonMapTile.TileType.Wall)
             {
-                // 주변에 길이 있으면 이 위치도 길로 만들기
+                // 二쇰???湲몄씠 ?덉쑝硫????꾩튂??湲몃줈 留뚮뱾湲?
                 int pathCount = 0;
                 if (x > 0 && map[x - 1, y].tileType == DungeonMapTile.TileType.Path) pathCount++;
                 if (x < mapWidth - 1 && map[x + 1, y].tileType == DungeonMapTile.TileType.Path) pathCount++;
@@ -149,11 +149,11 @@ public class DungeonMapGenerator : MonoBehaviour
     }
     
     /// <summary>
-    /// 시작점과 탈출점 설정
+    /// ?쒖옉?먭낵 ?덉텧???ㅼ젙
     /// </summary>
     private void SetStartAndExit()
     {
-        // 시작점 찾기 (가장 왼쪽 위쪽 경로)
+        // ?쒖옉??李얘린 (媛???쇱そ ?꾩そ 寃쎈줈)
         for (int x = 1; x < mapWidth - 1; x++)
         {
             for (int y = mapHeight - 2; y > 0; y--)
@@ -162,7 +162,7 @@ public class DungeonMapGenerator : MonoBehaviour
                 {
                     startPosition = new Vector2Int(x, y);
                     map[x, y].tileType = DungeonMapTile.TileType.Start;
-                    map[x, y].isExplored = true; // 시작점은 이미 탐험한 것으로
+                    map[x, y].isExplored = true; // ?쒖옉?먯? ?대? ?먰뿕??寃껋쑝濡?
                     goto foundStart;
                 }
             }
@@ -170,7 +170,7 @@ public class DungeonMapGenerator : MonoBehaviour
         
         foundStart:
         
-        // 탈출점 찾기 (가장 오른쪽 아래쪽 경로, 시작점과 최대한 멀리)
+        // ?덉텧??李얘린 (媛???ㅻⅨ履??꾨옒履?寃쎈줈, ?쒖옉?먭낵 理쒕???硫由?
         int maxDistance = 0;
         Vector2Int bestExit = startPosition;
         
@@ -195,7 +195,7 @@ public class DungeonMapGenerator : MonoBehaviour
     }
     
     /// <summary>
-    /// 유효한 위치인지 확인
+    /// ?좏슚???꾩튂?몄? ?뺤씤
     /// </summary>
     private bool IsValidPosition(Vector2Int pos)
     {
@@ -204,7 +204,7 @@ public class DungeonMapGenerator : MonoBehaviour
     }
     
     /// <summary>
-    /// 시작 위치 반환
+    /// ?쒖옉 ?꾩튂 諛섑솚
     /// </summary>
     public Vector2Int GetStartPosition()
     {
@@ -212,12 +212,13 @@ public class DungeonMapGenerator : MonoBehaviour
     }
     
     /// <summary>
-    /// 탈출점 위치 반환
+    /// ?덉텧???꾩튂 諛섑솚
     /// </summary>
     public Vector2Int GetExitPosition()
     {
         return exitPosition;
     }
 }
+
 
 

@@ -1,20 +1,18 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
-/// 밸런스 시뮬레이션 스크립트: 레벨업 속도, 보스 난이도, 던전 클리어 가능성 등을 시뮬레이션
-/// </summary>
+/// 諛몃윴???쒕??덉씠???ㅽ겕由쏀듃: ?덈꺼???띾룄, 蹂댁뒪 ?쒖씠?? ?섏쟾 ?대━??媛?μ꽦 ?깆쓣 ?쒕??덉씠??/// </summary>
 public class BalanceSimulator : MonoBehaviour
 {
     [Header("References")]
     public PlayerStats playerStats;
     public BattleManager battleManager;
-    public List<EnemyStats> enemyDatabase = new List<EnemyStats>(); // 모든 적 데이터
-    
+    public List<EnemyStats> enemyDatabase = new List<EnemyStats>(); // 紐⑤뱺 ???곗씠??    
     [Header("Simulation Settings")]
     public int maxFloors = 50;
-    public int battlesPerFloor = 3; // 층당 평균 전투 횟수
+    public int battlesPerFloor = 3; // 痢듬떦 ?됯퇏 ?꾪닾 ?잛닔
     public float avgBattlesPerFloor = 3f;
     
     [Header("Results")]
@@ -27,26 +25,26 @@ public class BalanceSimulator : MonoBehaviour
         simulationResults = "";
         AddLog("=== BALANCE SIMULATION START ===\n");
         
-        // 1. 레벨업 속도 시뮬레이션
+        // 1. ?덈꺼???띾룄 ?쒕??덉씠??
         SimulateLevelProgression();
         
-        // 2. 보스 난이도 체크
+        // 2. 蹂댁뒪 ?쒖씠??泥댄겕
         SimulateBossDifficulty();
         
-        // 3. 50층 클리어 시뮬레이션
+        // 3. 50痢??대━???쒕??덉씠??
         SimulateDungeonClear();
         
-        // 4. 전투 생존율 분석
+        // 4. ?꾪닾 ?앹〈??遺꾩꽍
         SimulateCombatSurvival();
         
-        // 5. 스탯 곡선 분석
+        // 5. ?ㅽ꺈 怨≪꽑 遺꾩꽍
         AnalyzeStatCurves();
         
         AddLog("\n=== SIMULATION COMPLETE ===");
         Debug.Log(simulationResults);
     }
     
-    // 레벨업 속도 시뮬레이션
+    // ?덈꺼???띾룄 ?쒕??덉씠??
     private void SimulateLevelProgression()
     {
         AddLog("--- Level Progression Simulation ---");
@@ -65,16 +63,16 @@ public class BalanceSimulator : MonoBehaviour
         AddLog($"Starting Level: {currentLevel}");
         AddLog($"Average EXP per enemy: {expPerEnemy}");
         
-        // 50층까지 시뮬레이션
+        // 50痢듦퉴吏 ?쒕??덉씠??
         for (int floor = 1; floor <= maxFloors; floor++)
         {
             int floorBattles = Mathf.RoundToInt(avgBattlesPerFloor);
-            int floorEnemies = floorBattles * Random.Range(1, 3); // 전투당 1~2마리 평균
+            int floorEnemies = floorBattles * UnityEngine.Random.Range(1, 3); // ?꾪닾??1~2留덈━ ?됯퇏
             
             totalExp += floorEnemies * expPerEnemy;
             battlesCompleted += floorBattles;
             
-            // 레벨업 체크 (간단한 경험치 곡선: 레벨 * 100)
+            // ?덈꺼??泥댄겕 (媛꾨떒??寃쏀뿕移?怨≪꽑: ?덈꺼 * 100)
             int expNeeded = currentLevel * 100;
             if (totalExp >= expNeeded)
             {
@@ -96,7 +94,7 @@ public class BalanceSimulator : MonoBehaviour
         AddLog("");
     }
     
-    // 보스 난이도 체크
+    // 蹂댁뒪 ?쒖씠??泥댄겕
     private void SimulateBossDifficulty()
     {
         AddLog("--- Boss Difficulty Check ---");
@@ -107,16 +105,16 @@ public class BalanceSimulator : MonoBehaviour
             return;
         }
         
-        // 플레이어 기준 스탯 (레벨 10 가정)
+        // ?뚮젅?댁뼱 湲곗? ?ㅽ꺈 (?덈꺼 10 媛??
         int playerLevel = 10;
-        int playerATK = playerStats.attack + (playerLevel - 1) * 2; // 레벨당 +2 공격력
+        int playerATK = playerStats.attack + (playerLevel - 1) * 2; // ?덈꺼??+2 怨듦꺽??
         int playerDEF = playerStats.defense + (playerLevel - 1) * 1;
         int playerHP = playerStats.maxHP + (playerLevel - 1) * 10;
         
         AddLog($"Player Level {playerLevel} Stats:");
         AddLog($"  HP: {playerHP}, ATK: {playerATK}, DEF: {playerDEF}");
         
-        // 보스 찾기 (HP가 높거나 이름에 Boss 포함)
+        // 蹂댁뒪 李얘린 (HP媛 ?믨굅???대쫫??Boss ?ы븿)
         var bosses = enemyDatabase.Where(e => 
             e.maxHP > playerHP * 2 || 
             e.enemyName.ToLower().Contains("boss") ||
@@ -142,11 +140,11 @@ public class BalanceSimulator : MonoBehaviour
         AddLog($"Analyzing Boss: {boss.enemyName}");
         AddLog($"  Boss HP: {boss.maxHP}, ATK: {boss.attack}, DEF: {boss.defense}");
         
-        // 플레이어가 보스를 쓰러뜨리는 데 필요한 턴 수 (대략)
+        // ?뚮젅?댁뼱媛 蹂댁뒪瑜??곕윭?⑤━?????꾩슂??????(???
         int playerDamagePerTurn = Mathf.Max(1, (playerATK * 2 - boss.defense) / 2);
         int turnsToKill = Mathf.CeilToInt((float)boss.maxHP / playerDamagePerTurn);
         
-        // 보스가 플레이어를 쓰러뜨리는 데 필요한 턴 수
+        // 蹂댁뒪媛 ?뚮젅?댁뼱瑜??곕윭?⑤━?????꾩슂??????
         int bossDamagePerTurn = Mathf.Max(1, (boss.attack * 2 - playerDEF) / 2);
         int turnsToDie = Mathf.CeilToInt((float)playerHP / bossDamagePerTurn);
         
@@ -157,23 +155,23 @@ public class BalanceSimulator : MonoBehaviour
         
         if (difficultyRatio > 2.0f)
         {
-            AddLog($"  ⚠️ VERY HARD - Player will likely die (Ratio: {difficultyRatio:F2})");
+            AddLog($"  ?좑툘 VERY HARD - Player will likely die (Ratio: {difficultyRatio:F2})");
         }
         else if (difficultyRatio > 1.5f)
         {
-            AddLog($"  ⚠️ HARD - Challenging but possible (Ratio: {difficultyRatio:F2})");
+            AddLog($"  ?좑툘 HARD - Challenging but possible (Ratio: {difficultyRatio:F2})");
         }
         else if (difficultyRatio > 0.7f)
         {
-            AddLog($"  ✓ BALANCED - Fair fight (Ratio: {difficultyRatio:F2})");
+            AddLog($"  ??BALANCED - Fair fight (Ratio: {difficultyRatio:F2})");
         }
         else
         {
-            AddLog($"  ⚠️ EASY - Boss too weak (Ratio: {difficultyRatio:F2})");
+            AddLog($"  ?좑툘 EASY - Boss too weak (Ratio: {difficultyRatio:F2})");
         }
     }
     
-    // 50층 클리어 시뮬레이션
+    // 50痢??대━???쒕??덉씠??
     private void SimulateDungeonClear()
     {
         AddLog("--- 50 Floor Clear Simulation ---");
@@ -200,11 +198,11 @@ public class BalanceSimulator : MonoBehaviour
             
             for (int battle = 0; battle < floorBattles; battle++)
             {
-                // 적 선택 (층에 따라 난이도 상승)
+                // ???좏깮 (痢듭뿉 ?곕씪 ?쒖씠???곸듅)
                 EnemyStats enemy = GetEnemyForFloor(floor);
                 if (enemy == null) continue;
                 
-                // 전투 시뮬레이션
+                // ?꾪닾 ?쒕??덉씠??
                 bool survived = SimulateSingleBattle(playerATK, playerDEF, ref playerHP, enemy);
                 
                 if (!survived)
@@ -214,7 +212,7 @@ public class BalanceSimulator : MonoBehaviour
                     break;
                 }
                 
-                // 레벨업 (간단히)
+                // ?덈꺼??(媛꾨떒??
                 if (battle % 5 == 0)
                 {
                     currentLevel++;
@@ -234,31 +232,31 @@ public class BalanceSimulator : MonoBehaviour
         
         if (died)
         {
-            AddLog($"❌ Player died at Floor {deathFloor}, Level {currentLevel}");
+            AddLog($"??Player died at Floor {deathFloor}, Level {currentLevel}");
         }
         else
         {
-            AddLog($"✓ Player cleared Floor {maxFloors} at Level {currentLevel}");
+            AddLog($"??Player cleared Floor {maxFloors} at Level {currentLevel}");
         }
         
         AddLog("");
     }
     
-    // 단일 전투 시뮬레이션
+    // ?⑥씪 ?꾪닾 ?쒕??덉씠??
     private bool SimulateSingleBattle(int playerATK, int playerDEF, ref int playerHP, EnemyStats enemy)
     {
         int enemyHP = enemy.maxHP;
-        int maxTurns = 50; // 무한 루프 방지
+        int maxTurns = 50; // 臾댄븳 猷⑦봽 諛⑹?
         int turn = 0;
         
         while (turn < maxTurns && playerHP > 0 && enemyHP > 0)
         {
-            // 플레이어 턴
+            // ?뚮젅?댁뼱 ??
             int playerDamage = Mathf.Max(1, (playerATK * 2 - enemy.defense) / 2);
             enemyHP -= playerDamage;
             if (enemyHP <= 0) break;
             
-            // 적 턴
+            // ????
             int enemyDamage = Mathf.Max(1, (enemy.attack * 2 - playerDEF) / 2);
             playerHP -= enemyDamage;
             if (playerHP <= 0) return false;
@@ -269,7 +267,7 @@ public class BalanceSimulator : MonoBehaviour
         return playerHP > 0;
     }
     
-    // 전투 생존율 분석
+    // ?꾪닾 ?앹〈??遺꾩꽍
     private void SimulateCombatSurvival()
     {
         AddLog("--- Combat Survival Rate Analysis ---");
@@ -313,7 +311,7 @@ public class BalanceSimulator : MonoBehaviour
         AddLog("");
     }
     
-    // 스탯 곡선 분석
+    // ?ㅽ꺈 怨≪꽑 遺꾩꽍
     private void AnalyzeStatCurves()
     {
         AddLog("--- Stat Curve Analysis ---");
@@ -324,11 +322,10 @@ public class BalanceSimulator : MonoBehaviour
             return;
         }
         
-        // 플레이어 스탯 범위
+        // ?뚮젅?댁뼱 ?ㅽ꺈 踰붿쐞
         int minPlayerATK = playerStats.attack;
-        int maxPlayerATK = playerStats.attack + (maxFloors * 2); // 레벨업 가정
-        
-        // 적 스탯 범위
+        int maxPlayerATK = playerStats.attack + (maxFloors * 2); // ?덈꺼??媛??        
+        // ???ㅽ꺈 踰붿쐞
         int minEnemyHP = enemyDatabase.Min(e => e.maxHP);
         int maxEnemyHP = enemyDatabase.Max(e => e.maxHP);
         int avgEnemyHP = Mathf.RoundToInt((float)enemyDatabase.Average(e => e.maxHP));
@@ -336,10 +333,9 @@ public class BalanceSimulator : MonoBehaviour
         AddLog($"Player ATK Range: {minPlayerATK} ~ {maxPlayerATK}");
         AddLog($"Enemy HP Range: {minEnemyHP} ~ {maxEnemyHP} (Avg: {avgEnemyHP})");
         
-        // 데미지 계산 체크
-        int earlyGameDamage = Mathf.Max(1, (minPlayerATK * 2 - 5) / 2); // 초반 적 방어력 5 가정
-        int lateGameDamage = Mathf.Max(1, (maxPlayerATK * 2 - 15) / 2); // 후반 적 방어력 15 가정
-        
+        // ?곕?吏 怨꾩궛 泥댄겕
+        int earlyGameDamage = Mathf.Max(1, (minPlayerATK * 2 - 5) / 2); // 珥덈컲 ??諛⑹뼱??5 媛??
+        int lateGameDamage = Mathf.Max(1, (maxPlayerATK * 2 - 15) / 2); // ?꾨컲 ??諛⑹뼱??15 媛??
         int earlyGameTurns = Mathf.CeilToInt((float)avgEnemyHP / earlyGameDamage);
         int lateGameTurns = Mathf.CeilToInt((float)maxEnemyHP / lateGameDamage);
         
@@ -348,30 +344,30 @@ public class BalanceSimulator : MonoBehaviour
         
         if (lateGameTurns > 20)
         {
-            AddLog("⚠️ Late game combat may be too long");
+            AddLog("?좑툘 Late game combat may be too long");
         }
         
         AddLog("");
     }
     
-    // 층에 맞는 적 선택
+    // 痢듭뿉 留욌뒗 ???좏깮
     private EnemyStats GetEnemyForFloor(int floor)
     {
         if (enemyDatabase == null || enemyDatabase.Count == 0) return null;
         
-        // 층에 따라 적 난이도 조정 (간단한 구현)
+        // 痢듭뿉 ?곕씪 ???쒖씠??議곗젙 (媛꾨떒??援ы쁽)
         var availableEnemies = enemyDatabase.Where(e => e.maxHP <= floor * 10).ToList();
         if (availableEnemies.Count == 0) availableEnemies = enemyDatabase;
         
-        return availableEnemies[Random.Range(0, availableEnemies.Count)];
+        return availableEnemies[UnityEngine.Random.Range(0, availableEnemies.Count)];
     }
     
-    // 평균 경험치 계산
+    // ?됯퇏 寃쏀뿕移?怨꾩궛
     private int CalculateAverageExp()
     {
         if (enemyDatabase == null || enemyDatabase.Count == 0) return 10;
         
-        // 적의 HP를 기반으로 경험치 추정 (HP * 0.1)
+        // ?곸쓽 HP瑜?湲곕컲?쇰줈 寃쏀뿕移?異붿젙 (HP * 0.1)
         return Mathf.RoundToInt((float)enemyDatabase.Average(e => e.maxHP) * 0.1f);
     }
     
@@ -412,4 +408,5 @@ public class BalanceSimulator : MonoBehaviour
         Debug.Log(simulationResults);
     }
 }
+
 

@@ -1,10 +1,9 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 
 /// <summary>
-/// 스프라이트 기반 던전 생성 (완전한 2D 스타일)
-/// 3D 공간에 2D 스프라이트를 배치하여 2D처럼 보이게 함
-/// </summary>
+/// ?ㅽ봽?쇱씠??湲곕컲 ?섏쟾 ?앹꽦 (?꾩쟾??2D ?ㅽ???
+/// 3D 怨듦컙??2D ?ㅽ봽?쇱씠?몃? 諛곗튂?섏뿬 2D泥섎읆 蹂댁씠寃???/// </summary>
 public class SpriteBasedDungeon : MonoBehaviour
 {
     [Header("Dungeon Settings")]
@@ -33,7 +32,7 @@ public class SpriteBasedDungeon : MonoBehaviour
     
     void Start()
     {
-        // Start에서 자동 생성하지 않음 (씬 설정에서 호출)
+        // Start?먯꽌 ?먮룞 ?앹꽦?섏? ?딆쓬 (???ㅼ젙?먯꽌 ?몄텧)
         // GenerateSpriteDungeon();
     }
     
@@ -52,30 +51,30 @@ public class SpriteBasedDungeon : MonoBehaviour
         GameObject dungeonRoot = new GameObject("SpriteDungeon");
         dungeonRoot.transform.SetParent(transform);
         
-        // 바닥 스프라이트들 배치
+        // 諛붾떏 ?ㅽ봽?쇱씠?몃뱾 諛곗튂
         CreateSpriteFloor(dungeonRoot.transform);
         
-        // 벽 스프라이트들 배치
+        // 踰??ㅽ봽?쇱씠?몃뱾 諛곗튂
         CreateSpriteWalls(dungeonRoot.transform);
         
-        // 아치 스프라이트들 배치
+        // ?꾩튂 ?ㅽ봽?쇱씠?몃뱾 諛곗튂
         CreateSpriteArches(dungeonRoot.transform);
     }
     
     void CreateSpriteFloor(Transform parent)
     {
-        // 바닥을 여러 스프라이트로 타일링 (위에서 내려다보는 각도)
+        // 諛붾떏???щ윭 ?ㅽ봽?쇱씠?몃줈 ??쇰쭅 (?꾩뿉???대젮?ㅻ낫??媛곷룄)
         int floorTiles = Mathf.CeilToInt(corridorLength / spriteScale);
         for (int i = 0; i < floorTiles; i++)
         {
             Vector3 floorPos = new Vector3(0, -1.8f, i * spriteScale);
             GameObject floorTile = CreateSpriteObject("FloorTile_" + i, floorSprite ?? CreateDefaultFloorSprite(), 
                 floorPos, parent);
-            // 바닥 스프라이트 크기 조정
+            // 諛붾떏 ?ㅽ봽?쇱씠???ш린 議곗젙
             floorTile.transform.localScale = new Vector3(corridorWidth, 1, 1);
-            // 바닥은 위에서 내려다보는 각도로 회전
+            // 諛붾떏? ?꾩뿉???대젮?ㅻ낫??媛곷룄濡??뚯쟾
             floorTile.transform.rotation = Quaternion.Euler(90, 0, 0);
-            // Billboard 제거 (바닥은 고정)
+            // Billboard ?쒓굅 (諛붾떏? 怨좎젙)
             BillboardSprite billboard = floorTile.GetComponent<BillboardSprite>();
             if (billboard != null) Destroy(billboard);
         }
@@ -83,18 +82,18 @@ public class SpriteBasedDungeon : MonoBehaviour
     
     void CreateSpriteWalls(Transform parent)
     {
-        // 왼쪽 벽 - 옆면을 보여주는 스프라이트
+        // ?쇱そ 踰?- ?녿㈃??蹂댁뿬二쇰뒗 ?ㅽ봽?쇱씠??
         int wallTiles = Mathf.CeilToInt(corridorLength / spriteScale);
         for (int i = 0; i < wallTiles; i++)
         {
             Vector3 leftPos = new Vector3(-corridorWidth / 2, 0, i * spriteScale);
             GameObject leftWall = CreateSpriteObject("LeftWall_" + i, wallSprite ?? CreateDefaultWallSprite(),
                 leftPos, parent);
-            // 벽 스프라이트 크기 조정 (더 크게)
-            leftWall.transform.localScale = new Vector3(1, 4, 1); // 높이 4배
-            // 벽은 옆면을 보여주도록 (오른쪽을 바라봄)
+            // 踰??ㅽ봽?쇱씠???ш린 議곗젙 (???ш쾶)
+            leftWall.transform.localScale = new Vector3(1, 4, 1); // ?믪씠 4諛?
+            // 踰쎌? ?녿㈃??蹂댁뿬二쇰룄濡?(?ㅻⅨ履쎌쓣 諛붾씪遊?
             leftWall.transform.rotation = Quaternion.Euler(0, 90, 0);
-            // Billboard 제거 (벽은 고정)
+            // Billboard ?쒓굅 (踰쎌? 怨좎젙)
             BillboardSprite billboard = leftWall.GetComponent<BillboardSprite>();
             if (billboard != null) Destroy(billboard);
             
@@ -102,9 +101,9 @@ public class SpriteBasedDungeon : MonoBehaviour
             GameObject rightWall = CreateSpriteObject("RightWall_" + i, wallSprite ?? CreateDefaultWallSprite(),
                 rightPos, parent);
             rightWall.transform.localScale = new Vector3(1, 4, 1);
-            // 벽은 옆면을 보여주도록 (왼쪽을 바라봄)
+            // 踰쎌? ?녿㈃??蹂댁뿬二쇰룄濡?(?쇱そ??諛붾씪遊?
             rightWall.transform.rotation = Quaternion.Euler(0, -90, 0);
-            // Billboard 제거
+            // Billboard ?쒓굅
             billboard = rightWall.GetComponent<BillboardSprite>();
             if (billboard != null) Destroy(billboard);
         }
@@ -130,10 +129,10 @@ public class SpriteBasedDungeon : MonoBehaviour
         
         SpriteRenderer sr = obj.AddComponent<SpriteRenderer>();
         sr.sprite = sprite;
-        sr.sortingOrder = Mathf.RoundToInt(-position.z * 10); // Z 순서에 따라 정렬
-        sr.sortingLayerName = "Default"; // 정렬 레이어 설정
+        sr.sortingOrder = Mathf.RoundToInt(-position.z * 10); // Z ?쒖꽌???곕씪 ?뺣젹
+        sr.sortingLayerName = "Default"; // ?뺣젹 ?덉씠???ㅼ젙
         
-        // Billboard 효과 추가 (카메라를 항상 바라보도록)
+        // Billboard ?④낵 異붽? (移대찓?쇰? ??긽 諛붾씪蹂대룄濡?
         BillboardSprite billboard = obj.AddComponent<BillboardSprite>();
         
         if (spriteMaterial != null)
@@ -141,7 +140,7 @@ public class SpriteBasedDungeon : MonoBehaviour
             sr.material = spriteMaterial;
         }
         
-        // 텍스처 필터를 Point로 설정 (픽셀 아트 스타일)
+        // ?띿뒪泥??꾪꽣瑜?Point濡??ㅼ젙 (?쎌? ?꾪듃 ?ㅽ???
         if (sprite != null && sprite.texture != null)
         {
             sprite.texture.filterMode = FilterMode.Point;
@@ -153,19 +152,19 @@ public class SpriteBasedDungeon : MonoBehaviour
     
     void AddSpriteDecorations()
     {
-        // 화로 배치
+        // ?붾줈 諛곗튂
         for (float z = 2f; z < corridorLength - 2f; z += torchSpacing)
         {
             CreateSpriteTorch(new Vector3(-corridorWidth / 2 + 0.6f, -1.4f, z));
         }
         
-        // 해골 배치
+        // ?닿낏 諛곗튂
         for (int i = 0; i < corridorLength * 0.3f; i++)
         {
             CreateSpriteSkeleton(new Vector3(
-                Random.Range(-corridorWidth / 2 + 0.5f, corridorWidth / 2 - 0.5f),
+                UnityEngine.Random.Range(-corridorWidth / 2 + 0.5f, corridorWidth / 2 - 0.5f),
                 -1.8f,
-                Random.Range(1f, corridorLength - 1f)
+                UnityEngine.Random.Range(1f, corridorLength - 1f)
             ));
         }
     }
@@ -175,7 +174,7 @@ public class SpriteBasedDungeon : MonoBehaviour
         GameObject torch = CreateSpriteObject("Torch", torchSprite ?? CreateDefaultTorchSprite(), position, transform);
         torch.transform.localScale = Vector3.one * 0.5f;
         
-        // 조명 추가
+        // 議곕챸 異붽?
         Light torchLight = torch.AddComponent<Light>();
         torchLight.type = LightType.Point;
         torchLight.color = torchLightColor;
@@ -189,7 +188,7 @@ public class SpriteBasedDungeon : MonoBehaviour
         GameObject skeleton = CreateSpriteObject("Skeleton", skeletonSprite ?? CreateDefaultSkeletonSprite(), 
             position, transform);
         skeleton.transform.localScale = Vector3.one * 0.3f;
-        skeleton.transform.localRotation = Quaternion.Euler(0, Random.Range(0, 360), 0);
+        skeleton.transform.localRotation = Quaternion.Euler(0, UnityEngine.Random.Range(0, 360), 0);
     }
     
     void SetupLighting()
@@ -206,18 +205,18 @@ public class SpriteBasedDungeon : MonoBehaviour
         RenderSettings.fogDensity = 0.015f;
     }
     
-    // 기본 스프라이트 생성 (스프라이트가 없을 때)
+    // 湲곕낯 ?ㅽ봽?쇱씠???앹꽦 (?ㅽ봽?쇱씠?멸? ?놁쓣 ??
     Sprite CreateDefaultWallSprite()
     {
-        Texture2D tex = new Texture2D(64, 128, TextureFormat.RGBA32, false); // 높이 2배
+        Texture2D tex = new Texture2D(64, 128, TextureFormat.RGBA32, false); // ?믪씠 2諛?
         Color wallColor = new Color(0.35f, 0.35f, 0.4f);
         
-        // 벽 텍스처에 간단한 패턴 추가 (2D 느낌)
+        // 踰??띿뒪泥섏뿉 媛꾨떒???⑦꽩 異붽? (2D ?먮굦)
         for (int x = 0; x < 64; x++)
         {
             for (int y = 0; y < 128; y++)
             {
-                // 돌 블록 패턴
+                // ??釉붾줉 ?⑦꽩
                 if ((x / 8 + y / 8) % 2 == 0)
                 {
                     tex.SetPixel(x, y, wallColor * 1.1f);
@@ -228,7 +227,7 @@ public class SpriteBasedDungeon : MonoBehaviour
                 }
             }
         }
-        tex.filterMode = FilterMode.Point; // 픽셀 아트 스타일
+        tex.filterMode = FilterMode.Point; // ?쎌? ?꾪듃 ?ㅽ???
         tex.Apply();
         return Sprite.Create(tex, new Rect(0, 0, 64, 128), new Vector2(0.5f, 0.5f), 64);
     }
@@ -238,12 +237,12 @@ public class SpriteBasedDungeon : MonoBehaviour
         Texture2D tex = new Texture2D(64, 64, TextureFormat.RGBA32, false);
         Color floorColor = new Color(0.25f, 0.25f, 0.3f);
         
-        // 바닥 타일 패턴
+        // 諛붾떏 ????⑦꽩
         for (int x = 0; x < 64; x++)
         {
             for (int y = 0; y < 64; y++)
             {
-                // 타일 경계선
+                // ???寃쎄퀎??
                 if (x % 16 == 0 || y % 16 == 0)
                 {
                     tex.SetPixel(x, y, floorColor * 0.8f);
@@ -254,7 +253,7 @@ public class SpriteBasedDungeon : MonoBehaviour
                 }
             }
         }
-        tex.filterMode = FilterMode.Point; // 픽셀 아트 스타일
+        tex.filterMode = FilterMode.Point; // ?쎌? ?꾪듃 ?ㅽ???
         tex.Apply();
         return Sprite.Create(tex, new Rect(0, 0, 64, 64), new Vector2(0.5f, 0.5f), 64);
     }
@@ -308,8 +307,8 @@ public class SpriteBasedDungeon : MonoBehaviour
         {
             for (int y = 0; y < 32; y++)
             {
-                if ((x > 10 && x < 22 && y > 20 && y < 32) || // 머리
-                    (x > 14 && x < 18 && y > 10 && y < 20)) // 몸통
+                if ((x > 10 && x < 22 && y > 20 && y < 32) || // 癒몃━
+                    (x > 14 && x < 18 && y > 10 && y < 20)) // 紐명넻
                 {
                     tex.SetPixel(x, y, boneColor);
                 }
@@ -340,4 +339,5 @@ public class SpriteBasedDungeon : MonoBehaviour
         ClearDungeon();
     }
 }
+
 

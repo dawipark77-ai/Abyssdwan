@@ -1,4 +1,6 @@
 using UnityEngine;
+using System.Collections.Generic;
+using AbyssdawnBattle;
 
 /// <summary>
 /// 플레이어의 런타임 상태 데이터를 저장하는 ScriptableObject
@@ -20,4 +22,14 @@ public class PlayerStatData : ScriptableObject
 
     [Tooltip("경험치 - 실시간으로 저장됨")]
     public int exp = 0;
+
+    [Header("탈부착형 캐릭터 시스템")]
+    [Tooltip("현재 장착된 직업 - 에디터에서 변경하면 배틀/맵 씬 모두 자동 반영됨")]
+    public CharacterClass currentJob;
+
+    [Tooltip("현재 장착된 스킬 리스트 - 스탯(직업)과 기술(스킬)이 분리됨")]
+    public List<AbyssdawnBattle.SkillData> equippedSkills = new List<AbyssdawnBattle.SkillData>();
+
+    [Tooltip("현재 장착된 패시브 리스트 - SkillData(Passive) 에셋을 사용")]
+    public List<AbyssdawnBattle.SkillData> equippedPassives = new List<AbyssdawnBattle.SkillData>();
 }

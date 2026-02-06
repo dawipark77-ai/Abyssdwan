@@ -1,7 +1,30 @@
-Plaintext
+# 불필요한 임시 파일 및 시스템 파일 (토큰 절약)
 Library/
 Temp/
 Logs/
 UserSettings/
-Packages/
-*.meta
+Obj/
+Build/
+Builds/
+.vs/
+.idea/
+
+# 대용량 에셋 (AI가 굳이 안 읽어도 되는 것들)
+Assets/Plugins/
+Assets/TextMesh Pro/
+Assets/StreamingAssets/
+
+# --- 여기서부터는 AI가 읽어야 하므로 '제거'하거나 '허용'해야 합니다 ---
+# *.unity  <- 절대 막지 마세요 (씬 구조 파악용)
+# *.prefab <- 절대 막지 마세요 (오브젝트 구성 파악용)
+# *.asset  <- 절대 막지 마세요 (우리의 HeroData가 여기 있습니다!)
+# *.meta   <- 절대 막지 마세요 (파일 간 연결 정보)
+
+# 나머지 폰트나 물리 재질 등은 토큰을 위해 계속 막아둡니다.
+*.mat
+*.anim
+*.controller
+*.overrideController
+*.physicMaterial
+*.fontsettings
+*.lighting

@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class DungeonEncounter : MonoBehaviour
@@ -7,7 +7,7 @@ public class DungeonEncounter : MonoBehaviour
 
     [Header("Encounter Settings")]
     [Range(0f, 1f)]
-    public float encounterChance = 0.15f; // 이동 1회당 전투 확률 (15%)
+    public float encounterChance = 0.15f; // ?대룞 1?뚮떦 ?꾪닾 ?뺣쪧 (15%)
 
     public string battleSceneName = "Abyssdawn_Battle 01";
     public static string lastDungeonScene;
@@ -26,11 +26,11 @@ public class DungeonEncounter : MonoBehaviour
     }
 
     /// <summary>
-    /// 플레이어가 한 칸 이동했을 때 호출
+    /// ?뚮젅?댁뼱媛 ??移??대룞?덉쓣 ???몄텧
     /// </summary>
     public void CheckEncounter(Vector2Int pos)
     {
-        float roll = Random.value;
+        float roll = UnityEngine.Random.value;
         Debug.Log("[DungeonEncounter] Checking encounter at " + pos + ". Roll: " + roll.ToString("F2") + ", Chance: " + encounterChance.ToString("F2"));
         if (roll < encounterChance)
         {
@@ -42,10 +42,10 @@ public class DungeonEncounter : MonoBehaviour
     {
         Debug.Log("[DungeonEncounter] >>> STARTING ENCOUNTER! <<<");
         
-        // 필요하다면 현재 층, 좌표, 몬스터 테이블 등을 저장
+        // ?꾩슂?섎떎硫??꾩옱 痢? 醫뚰몴, 紐ъ뒪???뚯씠釉??깆쓣 ???
         lastDungeonScene = SceneManager.GetActiveScene().name;
         
-        // 플레이어 위치 및 상태 저장
+        // ?뚮젅?댁뼱 ?꾩튂 諛??곹깭 ???
         DungeonGridPlayer dPlayer = FindFirstObjectByType<DungeonGridPlayer>();
         if (dPlayer != null)
         {
@@ -67,3 +67,5 @@ public class DungeonEncounter : MonoBehaviour
         SceneManager.LoadScene(battleSceneName);
     }
 }
+
+

@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using SkillData = AbyssdawnBattle.SkillData;
 
 public class PlayerSkillUI : MonoBehaviour
 {

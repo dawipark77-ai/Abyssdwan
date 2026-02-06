@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(if [ -d \"E:\\\\Dawi\\\\My Programs\\\\Game Maker\\\\Unity\\\\Projects\\\\Abyssdawn 01\\\\Assets\\\\Resources\\\\Skills\" ])",
+      "Bash(then echo \"Folder exists\")",
+      "Bash(else echo \"Folder does not exist\")",
+      "Bash(fi)"
+    ]
+  }
+}

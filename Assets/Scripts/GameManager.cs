@@ -132,6 +132,11 @@ public class GameManager : MonoBehaviour
     public void SaveFromPlayer(PlayerStats player)
     {
         if (player == null) return;
+        if (player.statData != null)
+        {
+            // SO가 단일 소스이므로 GameManager는 더 이상 저장하지 않음
+            return;
+        }
 
         if (string.IsNullOrEmpty(player.playerName))
         {
@@ -156,6 +161,11 @@ public class GameManager : MonoBehaviour
     public void ApplyToPlayer(PlayerStats player)
     {
         if (player == null) return;
+        if (player.statData != null)
+        {
+            // SO가 단일 소스이므로 GameManager는 더 이상 로드하지 않음
+            return;
+        }
 
         if (staticPartyData.TryGetValue(player.playerName, out PartyMemberData data))
         {

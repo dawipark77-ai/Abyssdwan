@@ -1,32 +1,32 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 
 /// <summary>
-/// 디버그 핫키 시스템: F1~F10으로 게임 상태 전환, 적 소환, 테스트 기능 실행
+/// ?붾쾭洹??ロ궎 ?쒖뒪?? F1~F10?쇰줈 寃뚯엫 ?곹깭 ?꾪솚, ???뚰솚, ?뚯뒪??湲곕뒫 ?ㅽ뻾
 /// </summary>
 public class DebugHotkeySystem : MonoBehaviour
 {
     [Header("References")]
     public BattleManager battleManager;
     public PlayerStats playerStats;
-    public List<EnemyStats> enemyPrefabs = new List<EnemyStats>(); // 인스펙터에서 할당할 적 프리팹들
+    public List<EnemyStats> enemyPrefabs = new List<EnemyStats>(); // ?몄뒪?숉꽣?먯꽌 ?좊떦?????꾨━?밸뱾
     
     [Header("Spawn Settings")]
-    public Transform spawnCenter; // 적 생성 중심 위치
-    public float spawnOffset = 2f; // 적 간격
+    public Transform spawnCenter; // ???앹꽦 以묒떖 ?꾩튂
+    public float spawnOffset = 2f; // ??媛꾧꺽
     
     [Header("Debug Settings")]
-    public bool enableDebugMode = true; // 디버그 모드 켜기/끄기
+    public bool enableDebugMode = true; // ?붾쾭洹?紐⑤뱶 耳쒓린/?꾧린
     
     private List<EnemyStats> spawnedEnemies = new List<EnemyStats>();
     
-    // 게임 상태 열거형
+    // 寃뚯엫 ?곹깭 ?닿굅??
     public enum GameState
     {
-        Exploration,  // 탐색 모드
-        Battle,       // 전투 모드
-        Menu,         // 메뉴(스테이터스/장비/스킬 창)
-        Paused        // 일시정지
+        Exploration,  // ?먯깋 紐⑤뱶
+        Battle,       // ?꾪닾 紐⑤뱶
+        Menu,         // 硫붾돱(?ㅽ뀒?댄꽣???λ퉬/?ㅽ궗 李?
+        Paused        // ?쇱떆?뺤?
     }
     
     private GameState currentState = GameState.Exploration;
@@ -43,7 +43,7 @@ public class DebugHotkeySystem : MonoBehaviour
     {
         if (!enableDebugMode) return;
         
-        // 핫키 처리
+        // ?ロ궎 泥섎━
         if (Input.GetKeyDown(KeyCode.F1))
         {
             SwitchToExplorationMode();
@@ -85,7 +85,7 @@ public class DebugHotkeySystem : MonoBehaviour
             LogCurrentStatus();
         }
         
-        // 추가: 숫자키로 특정 적 소환 (1~9)
+        // 異붽?: ?レ옄?ㅻ줈 ?뱀젙 ???뚰솚 (1~9)
         for (int i = 1; i <= 9; i++)
         {
             if (Input.GetKeyDown(KeyCode.Alpha0 + i) && enemyPrefabs.Count >= i)
@@ -95,7 +95,7 @@ public class DebugHotkeySystem : MonoBehaviour
         }
     }
     
-    // F1: 탐색 모드로 전환
+    // F1: ?먯깋 紐⑤뱶濡??꾪솚
     private void SwitchToExplorationMode()
     {
         currentState = GameState.Exploration;
@@ -108,7 +108,7 @@ public class DebugHotkeySystem : MonoBehaviour
         Debug.Log("[DEBUG] Switched to Exploration Mode");
     }
     
-    // F2: 전투 시작
+    // F2: ?꾪닾 ?쒖옉
     private void StartBattle()
     {
         currentState = GameState.Battle;
@@ -120,7 +120,7 @@ public class DebugHotkeySystem : MonoBehaviour
         Debug.Log("[DEBUG] Battle Started");
     }
     
-    // F3: 랜덤 적 1마리 소환
+    // F3: ?쒕뜡 ??1留덈━ ?뚰솚
     private void SpawnRandomEnemy()
     {
         if (enemyPrefabs == null || enemyPrefabs.Count == 0)
@@ -129,12 +129,12 @@ public class DebugHotkeySystem : MonoBehaviour
             return;
         }
         
-        EnemyStats randomEnemy = enemyPrefabs[Random.Range(0, enemyPrefabs.Count)];
+        EnemyStats randomEnemy = enemyPrefabs[UnityEngine.Random.Range(0, enemyPrefabs.Count)];
         SpawnEnemyAtPosition(randomEnemy, GetSpawnPosition(0));
         Debug.Log($"[DEBUG] Spawned random enemy: {randomEnemy.enemyName}");
     }
     
-    // F4: 랜덤 적 1~4마리 소환 (중앙 대칭 배치)
+    // F4: ?쒕뜡 ??1~4留덈━ ?뚰솚 (以묒븰 ?移?諛곗튂)
     private void SpawnMultipleEnemies()
     {
         if (enemyPrefabs == null || enemyPrefabs.Count == 0)
@@ -143,14 +143,14 @@ public class DebugHotkeySystem : MonoBehaviour
             return;
         }
         
-        ClearAllEnemies(); // 기존 적 제거
+        ClearAllEnemies(); // 湲곗〈 ???쒓굅
         
-        int enemyCount = Random.Range(1, 5); // 1~4마리
+        int enemyCount = UnityEngine.Random.Range(1, 5); // 1~4留덈━
         Vector3 center = spawnCenter != null ? spawnCenter.position : Vector3.zero;
         
         for (int i = 0; i < enemyCount; i++)
         {
-            EnemyStats randomEnemy = enemyPrefabs[Random.Range(0, enemyPrefabs.Count)];
+            EnemyStats randomEnemy = enemyPrefabs[UnityEngine.Random.Range(0, enemyPrefabs.Count)];
             Vector3 pos = GetSymmetricPosition(center, enemyCount, i);
             SpawnEnemyAtPosition(randomEnemy, pos);
         }
@@ -158,7 +158,7 @@ public class DebugHotkeySystem : MonoBehaviour
         Debug.Log($"[DEBUG] Spawned {enemyCount} enemies (symmetric around center)");
     }
     
-    // F5: 모든 적 제거
+    // F5: 紐⑤뱺 ???쒓굅
     private void ClearAllEnemies()
     {
         foreach (var enemy in spawnedEnemies)
@@ -170,17 +170,17 @@ public class DebugHotkeySystem : MonoBehaviour
         Debug.Log("[DEBUG] Cleared all enemies");
     }
     
-    // F6: 플레이어 회복
+    // F6: ?뚮젅?댁뼱 ?뚮났
     private void HealPlayer()
     {
         if (playerStats != null)
         {
-            playerStats.Heal(999); // 완전 회복
+            playerStats.Heal(999); // ?꾩쟾 ?뚮났
             Debug.Log($"[DEBUG] Player healed. HP: {playerStats.currentHP}/{playerStats.maxHP}");
         }
     }
     
-    // F7: 플레이어 데미지
+    // F7: ?뚮젅?댁뼱 ?곕?吏
     private void DamagePlayer(int damage)
     {
         if (playerStats != null)
@@ -190,7 +190,7 @@ public class DebugHotkeySystem : MonoBehaviour
         }
     }
     
-    // F8: 전투 리셋
+    // F8: ?꾪닾 由ъ뀑
     private void ResetBattle()
     {
         ClearAllEnemies();
@@ -207,12 +207,12 @@ public class DebugHotkeySystem : MonoBehaviour
         Debug.Log("[DEBUG] Battle reset");
     }
 
-    // F5: 전투 전체 리셋 후 새로운 적 랜덤 소환
+    // F5: ?꾪닾 ?꾩껜 由ъ뀑 ???덈줈?????쒕뜡 ?뚰솚
     private void RestartBattleWithRandomEnemy()
     {
         Debug.Log("[DEBUG] Restarting battle (F5)");
 
-        // 기본 리셋 로직 수행
+        // 湲곕낯 由ъ뀑 濡쒖쭅 ?섑뻾
         ResetBattle();
 
         if (battleManager == null)
@@ -220,7 +220,7 @@ public class DebugHotkeySystem : MonoBehaviour
             battleManager = Object.FindFirstObjectByType<BattleManager>();
         }
 
-        // BattleManager가 있으면 새 전투 시작 (EnemyDatabase를 통해 랜덤 적 소환)
+        // BattleManager媛 ?덉쑝硫????꾪닾 ?쒖옉 (EnemyDatabase瑜??듯빐 ?쒕뜡 ???뚰솚)
         if (battleManager != null)
         {
             battleManager.StopAllCoroutines();
@@ -228,13 +228,13 @@ public class DebugHotkeySystem : MonoBehaviour
         }
         else
         {
-            // BattleManager가 없으면 디버그용 프리팹에서 랜덤 적 소환
+            // BattleManager媛 ?놁쑝硫??붾쾭洹몄슜 ?꾨━?뱀뿉???쒕뜡 ???뚰솚
             ClearAllEnemies();
             SpawnRandomEnemy();
         }
     }
     
-    // F9: 일시정지 토글
+    // F9: ?쇱떆?뺤? ?좉?
     private void TogglePause()
     {
         if (Time.timeScale > 0f)
@@ -250,7 +250,7 @@ public class DebugHotkeySystem : MonoBehaviour
         }
     }
     
-    // F10: 현재 상태 로그
+    // F10: ?꾩옱 ?곹깭 濡쒓렇
     private void LogCurrentStatus()
     {
         Debug.Log("=== DEBUG STATUS ===");
@@ -267,7 +267,7 @@ public class DebugHotkeySystem : MonoBehaviour
         }
     }
     
-    // 숫자키: 특정 적 소환 (인덱스)
+    // ?レ옄?? ?뱀젙 ???뚰솚 (?몃뜳??
     private void SpawnEnemyByIndex(int index)
     {
         if (index < 0 || index >= enemyPrefabs.Count)
@@ -282,7 +282,7 @@ public class DebugHotkeySystem : MonoBehaviour
         Debug.Log($"[DEBUG] Spawned enemy by index {index}: {enemy.enemyName}");
     }
     
-    // 적 소환 헬퍼
+    // ???뚰솚 ?ы띁
     private void SpawnEnemyAtPosition(EnemyStats enemyPrefab, Vector3 position)
     {
         GameObject enemyObj = Instantiate(enemyPrefab.gameObject, position, Quaternion.identity);
@@ -291,7 +291,7 @@ public class DebugHotkeySystem : MonoBehaviour
         {
             spawnedEnemies.Add(enemy);
             
-            // BattleManager에 첫 번째 적 연결 (다중 적 지원 전까지 임시)
+            // BattleManager??泥?踰덉㎏ ???곌껐 (?ㅼ쨷 ??吏???꾧퉴吏 ?꾩떆)
             if (battleManager != null && spawnedEnemies.Count == 1)
             {
                 battleManager.enemy = enemy;
@@ -299,12 +299,12 @@ public class DebugHotkeySystem : MonoBehaviour
         }
     }
     
-    // 중앙 대칭 위치 계산 (한글처럼 중앙 기준 좌우 펼침)
+    // 以묒븰 ?移??꾩튂 怨꾩궛 (?쒓?泥섎읆 以묒븰 湲곗? 醫뚯슦 ?쇱묠)
     private Vector3 GetSymmetricPosition(Vector3 center, int totalCount, int index)
     {
         float offset = 0f;
         
-        // 중앙 기준 대칭 오프셋 계산
+        // 以묒븰 湲곗? ?移??ㅽ봽??怨꾩궛
         if (totalCount == 1)
         {
             offset = 0f;
@@ -319,7 +319,7 @@ public class DebugHotkeySystem : MonoBehaviour
             else if (index == 1) offset = 0f;
             else offset = spawnOffset;
         }
-        else // 4마리
+        else // 4留덈━
         {
             if (index == 0) offset = -spawnOffset * 1.5f;
             else if (index == 1) offset = -spawnOffset * 0.5f;
@@ -327,12 +327,12 @@ public class DebugHotkeySystem : MonoBehaviour
             else offset = spawnOffset * 1.5f;
         }
         
-        // 카메라 기준 right 벡터 사용 (1인칭 기준)
+        // 移대찓??湲곗? right 踰≫꽣 ?ъ슜 (1?몄묶 湲곗?)
         Vector3 right = Camera.main != null ? Camera.main.transform.right : Vector3.right;
         return center + right * offset;
     }
     
-    // 단일 위치 (기본)
+    // ?⑥씪 ?꾩튂 (湲곕낯)
     private Vector3 GetSpawnPosition(int index)
     {
         Vector3 center = spawnCenter != null ? spawnCenter.position : Vector3.zero;
@@ -344,7 +344,7 @@ public class DebugHotkeySystem : MonoBehaviour
     {
         if (!enableDebugMode) return;
         
-        // 화면 좌측 상단에 디버그 정보 표시
+        // ?붾㈃ 醫뚯륫 ?곷떒???붾쾭洹??뺣낫 ?쒖떆
         GUILayout.BeginArea(new Rect(10, 10, 300, 400));
         GUILayout.Label("=== DEBUG MODE ===", GUI.skin.box);
         GUILayout.Label($"State: {currentState}");
@@ -363,4 +363,5 @@ public class DebugHotkeySystem : MonoBehaviour
         GUILayout.EndArea();
     }
 }
+
 

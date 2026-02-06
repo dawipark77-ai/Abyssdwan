@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public class TorchLight : MonoBehaviour
 {
@@ -14,7 +14,7 @@ public class TorchLight : MonoBehaviour
     {
         if (torchLight == null) torchLight = GetComponent<Light>();
         baseIntensity = torchLight.intensity;
-        randomOffset = Random.Range(0f, 100f);
+        randomOffset = UnityEngine.Random.Range(0f, 100f);
     }
 
     void Update()
@@ -26,3 +26,4 @@ public class TorchLight : MonoBehaviour
         }
     }
 }
+

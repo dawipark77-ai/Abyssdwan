@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e, type: 3}
+  m_Name: Skill_02_StrongSlash
+  m_EditorClassIdentifier: Assembly-CSharp::AbyssdawnBattle.SkillData
+  skillID: 02
+  skillName: Strong Slash
+  skillIcon: {fileID: -1101750654258036731, guid: 3955b202bf839314a830086e1903dd93, type: 3}
+  description: Powerful physical attack with higher damage but greater HP cost.
+  usageType: 0
+  damageType: 0
+  scaleStat: 0
+  hpCostPercent: 10
+  mpCost: 0
+  minMult: 2
+  maxMult: 2.5
+  hitCount: 1
+  selfDmgPercent: 0
+  selfDmgChance: 0
+  selfCurse: 0
+  selfCurseChance: 0
+  targetCurse: 0
+  targetCurseChance: 0
+  effectType: 0
+  recoveryTarget: 0
+  effectAmount: 0
+  triggerCondition: 0

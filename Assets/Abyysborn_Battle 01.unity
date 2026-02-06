@@ -207,16 +207,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6635ad0edf2791042ac1cdda7d1b8b3c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerStats
-  playerName: Hero
-  maxHP: 100
-  currentHP: 0
-  maxMP: 30
-  currentMP: 0
-  attack: 18
-  defense: 5
-  magic: 10
-  Agility: 13
-  luck: 3
+  statData: {fileID: 11400000, guid: a176c788f5d164441af8bae214804085, type: 2}
+  playerName: 
+  baseHP: 100
+  baseMP: 10
+  baseAttack: 5
+  baseDefense: 5
+  baseMagic: 5
+  baseAgility: 5
+  baseLuck: 3
+  characterClass: {fileID: 11400000, guid: 8a0e4d071afd8734db05c41ff62774b9, type: 2}
+  maxExp: 100
   isDefending: 0
   defenceReduction: 0.4
   defenseBuffAmount: 0
@@ -1411,7 +1412,7 @@ MonoBehaviour:
   itemButton: {fileID: 1214368360}
   runButton: {fileID: 733795667}
   defendButton: {fileID: 1013904361}
-  skillBackButton: {fileID: 0}
+  skillBackButton: {fileID: 1699074238}
   skillPanel: {fileID: 840083819}
   battleUIManager: {fileID: 183672749}
   playerHPText: {fileID: 2003987015}
@@ -1425,6 +1426,7 @@ MonoBehaviour:
   potionCount: 2
   battleEnded: 1
   battleRecorder: {fileID: 0}
+  playerStatData: {fileID: 11400000, guid: a176c788f5d164441af8bae214804085, type: 2}
   playerTurn: 1
   criticalChance: 25
   evasionChance: 10
@@ -1454,22 +1456,7 @@ MonoBehaviour:
   spawnOffset: 0.6
   extraSpacingPerEnemy: 0.05
   skillLibrary: {fileID: 11400000, guid: 43273dc8b45e5d044b8dc85df9b0c6d5, type: 2}
-  fireballSkill:
-    skillID: 
-    skillName: 
-    skillType: 
-    hpCostPercent: 0
-    mpCost: 0
-    minMultiplier: 0
-    maxMultiplier: 0
-    icon: {fileID: 0}
-    hitCount: 0
-    scalingStat: 
-    selfDamageChance: 0
-    selfDamagePercent: 0
-    isRecovery: 0
-    isDefensive: 0
-    effectValue: 0
+  fireballSkill: {fileID: 0}
   turnDelay: 0.3
   actionDelay: 0.5
 --- !u!4 &437657166
@@ -3599,16 +3586,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6635ad0edf2791042ac1cdda7d1b8b3c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerStats
+  statData: {fileID: 11400000, guid: a176c788f5d164441af8bae214804085, type: 2}
   playerName: Hero
-  maxHP: 100
-  currentHP: 0
-  maxMP: 30
-  currentMP: 0
-  attack: 18
-  defense: 5
-  magic: 10
-  Agility: 13
-  luck: 3
+  baseHP: 100
+  baseMP: 10
+  baseAttack: 5
+  baseDefense: 5
+  baseMagic: 5
+  baseAgility: 5
+  baseLuck: 3
+  characterClass: {fileID: 11400000, guid: 8a0e4d071afd8734db05c41ff62774b9, type: 2}
+  maxExp: 100
   isDefending: 0
   defenceReduction: 0.4
   defenseBuffAmount: 0
@@ -5610,6 +5598,8 @@ MonoBehaviour:
   statusUISize: {x: 200, y: 80}
   statusUIScale: 0.01
   statusUIOffsetY: 1.5
+  level: 1
+  expReward: 10
 --- !u!1 &1687753667
 GameObject:
   m_ObjectHideFlags: 0

@@ -79,7 +79,7 @@ public class CharacterClassDatabase : ScriptableObject
             }
         }
         
-        Debug.Log($"[CharacterClassDatabase] Dictionary 빌드 완료. 총 {_classDict.Count}개 직업 등록됨");
+        Debug.Log($"[CharacterClassDatabase] Dictionary build complete. Total classes: {_classDict.Count}");
     }
 
     /// <summary>

@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
+using AbyssdawnBattle;
+using SkillData = AbyssdawnBattle.SkillData;
 
 public class BattleManager : MonoBehaviour
 {
@@ -51,6 +53,7 @@ public class BattleManager : MonoBehaviour
     public TextMeshProUGUI enemyHPText;
     public TextMeshProUGUI enemyMPText;
     public TextMeshProUGUI potionCountText;
+    public TextMeshProUGUI pageText;
 
     [Header("Battle Settings")]
     public int maxMessages = 50;
@@ -63,6 +66,9 @@ public class BattleManager : MonoBehaviour
 
     [Header("Replay System")]
     public BattleRecorder battleRecorder;
+
+    [Header("Player Data")]
+    public PlayerStatData playerStatData;
 
     private Queue<string> messageQueue = new Queue<string>();
     public bool playerTurn = true;
@@ -287,7 +293,7 @@ public class BattleManager : MonoBehaviour
             btnImage.color = new Color(0.2f, 0.2f, 0.2f, 0.9f);
             
             // 아이콘 추가 (왼쪽에 배치)
-            if (skill.icon != null)
+            if (skill.skillIcon != null)
             {
                 GameObject iconObj = new GameObject("Icon", typeof(RectTransform), typeof(UnityEngine.UI.Image));
                 iconObj.transform.SetParent(btnObj.transform, false);
@@ -298,9 +304,9 @@ public class BattleManager : MonoBehaviour
                 float iconSize = btnHeight * 0.7f; // 버튼 높이의 70%
                 iconRT.sizeDelta = new Vector2(iconSize, iconSize);
                 iconRT.anchoredPosition = new Vector2(10, 0); // 왼쪽에서 10px 떨어진 위치
-                
+
                 UnityEngine.UI.Image iconImage = iconObj.GetComponent<UnityEngine.UI.Image>();
-                iconImage.sprite = skill.icon;
+                iconImage.sprite = skill.skillIcon;
                 iconImage.preserveAspect = true;
             }
             
@@ -375,6 +381,9 @@ public class BattleManager : MonoBehaviour
         
         // EnemyDatabase 미리 로드 시도
         LoadEnemyDatabase();
+
+        // 페이지네이션 UI 자동 연결 시도
+        TryAutoAssignPaginationUI();
     }
     
     /// <summary>
@@ -499,6 +508,9 @@ public class BattleManager : MonoBehaviour
 
         // Back 버튼 찾기 (Start에서도 찾기)
         FindAndConnectBackButton();
+
+        // 페이지네이션 UI 자동 연결 시도
+        TryAutoAssignPaginationUI();
 
         // 버튼 연결
         if (attackButton != null) attackButton.onClick.AddListener(OnAttackButton);
@@ -1181,7 +1193,7 @@ public class BattleManager : MonoBehaviour
         int currentFloor = DungeonPersistentData.currentFloor;
         int count = 1;
         
-        float roll = Random.value; // 0.0 ~ 1.0
+        float roll = UnityEngine.Random.value; // 0.0 ~ 1.0
 
         if (currentFloor == 1)
         {
@@ -1204,7 +1216,7 @@ public class BattleManager : MonoBehaviour
         else
         {
              // 4층 이상: 기본 랜덤 (1~3마리)
-             count = Random.Range(1, 4);
+             count = UnityEngine.Random.Range(1, 4);
         }
         
         Debug.Log($"[BattleManager] Floor {currentFloor} Spawn Roll: {roll:F2} -> Count: {count}");
@@ -2009,7 +2021,7 @@ public class BattleManager : MonoBehaviour
                 if (cmd.skill != null)
                 {
                     // 타겟이 필요한 스킬인데 타겟이 없거나 죽었으면 실행 불가 (단, 회복/방어 스킬은 타겟 없이(본인) 실행 가능)
-                    bool isSelfSkill = cmd.skill.isRecovery || cmd.skill.isDefensive;
+                    bool isSelfSkill = IsSelfTargetSkill(cmd.skill);
                     if (isSelfSkill || (cmd.targetEnemy != null && cmd.targetEnemy.currentHP > 0))
                     {
                         yield return StartCoroutine(ExecuteSkill(cmd.actor, cmd.skill, cmd.targetEnemy));
@@ -2186,48 +2198,48 @@ public class BattleManager : MonoBehaviour
         UpdateStatusUI();
     }
 
-    // 모든 점화된 캐릭터들의 점화 데미지 처리 (모든 행동이 끝난 후)
+    // 모든 저주 효과 처리 (턴 종료 시)
     private IEnumerator ProcessAllIgniteDamage()
     {
-        bool anyIgniteDamage = false;
-        
-        // 아군 점화 데미지 처리
+        bool anyCurseDamage = false;
+
+        // 아군 저주 데미지 처리
         foreach (var member in activePartyMembers)
         {
-            if (member != null && member.isIgnited && member.currentHP > 0)
+            if (member != null && member.activeCurses.Count > 0 && member.currentHP > 0)
             {
                 int hpBefore = member.currentHP;
-                member.ProcessIgniteDamage();
+                member.ProcessCursesEndOfTurn();
                 if (member.currentHP < hpBefore)
                 {
                     int damage = hpBefore - member.currentHP;
-                    AddMessage($"{member.playerName} takes {damage} ignite damage!");
-                    // 점화 데미지로 인한 UI 흔들림
+                    AddMessage($"{member.playerName} takes {damage} damage from curses!");
+                    // 저주 데미지로 인한 UI 흔들림
                     ShakePlayerStatusUI(member);
-                    anyIgniteDamage = true;
+                    anyCurseDamage = true;
                 }
             }
         }
-        
-        // 적 점화 데미지 처리
+
+        // 적 저주 데미지 처리
         foreach (var enemy in activeEnemies)
         {
-            if (enemy != null && enemy.isIgnited && enemy.currentHP > 0 && !enemy.IsDead())
+            if (enemy != null && enemy.activeCurses.Count > 0 && enemy.currentHP > 0 && !enemy.IsDead())
             {
                 int hpBefore = enemy.currentHP;
-                enemy.ProcessIgniteDamage();
+                enemy.ProcessCursesEndOfTurn();
                 if (enemy.currentHP < hpBefore)
                 {
                     int damage = hpBefore - enemy.currentHP;
-                    AddMessage($"{enemy.enemyName} takes {damage} ignite damage!");
+                    AddMessage($"{enemy.enemyName} takes {damage} damage from curses!");
                     enemy.UpdateStatusUI();
-                    anyIgniteDamage = true;
+                    anyCurseDamage = true;
                 }
             }
         }
-        
-        // 점화 데미지가 있었으면 UI 업데이트 및 딜레이
-        if (anyIgniteDamage)
+
+        // 저주 데미지가 있었으면 UI 업데이트 및 딜레이
+        if (anyCurseDamage)
         {
             UpdateStatusUI();
             yield return new WaitForSeconds(actionDelay);
@@ -2276,8 +2288,8 @@ public class BattleManager : MonoBehaviour
         {
             if (text == null && background == null) yield break;
             
-            float offsetX = Random.Range(-magnitude, magnitude);
-            float offsetY = Random.Range(-magnitude, magnitude);
+            float offsetX = UnityEngine.Random.Range(-magnitude, magnitude);
+            float offsetY = UnityEngine.Random.Range(-magnitude, magnitude);
             
             if (text != null)
             {
@@ -2436,7 +2448,7 @@ public class BattleManager : MonoBehaviour
             }
         }
 
-        return weighted[Random.Range(0, weighted.Count)];
+        return weighted[UnityEngine.Random.Range(0, weighted.Count)];
     }
 
     private int GetPartySlotWeight(PlayerStats member)
@@ -2519,7 +2531,7 @@ public class BattleManager : MonoBehaviour
         }
 
         // 즉시 발동 스킬 (회복, 방어 등 본인 대상)
-        if (skill.isRecovery || skill.isDefensive)
+        if (IsSelfTargetSkill(skill))
         {
             QueueAllyCommand(currentControlledMember, "skill", null, skill);
             return;
@@ -2734,8 +2746,7 @@ public class BattleManager : MonoBehaviour
         
         Debug.Log($"[BattleManager] Available skill buttons (excluding back): {availableSkillButtons.Count}");
         
-        // 1. 스킬 정렬 (코스트 오름차순)
-        skills.Sort();
+        // 1. 스킬 정렬 제거: 획득 순서 유지
 
         // 2. 페이지 계산
         int totalPages = Mathf.CeilToInt((float)skills.Count / SKILLS_PER_PAGE);
@@ -2781,7 +2792,17 @@ public class BattleManager : MonoBehaviour
 
     private void CreatePaginationButtons()
     {
-        if (skillPanel == null) return;
+        TryAutoAssignPaginationUI();
+        if (skillPanel == null)
+        {
+            Debug.LogWarning("[BattleManager] CreatePaginationButtons aborted: skillPanel is null.");
+            return;
+        }
+        if (skillBackButton == null)
+        {
+            Debug.LogWarning("[BattleManager] CreatePaginationButtons aborted: skillBackButton is null. Assign it or name it 'BackButton'/'Back'.");
+            return;
+        }
 
         // Prev Button
         if (prevPageButton == null)
@@ -2795,7 +2816,14 @@ public class BattleManager : MonoBehaviour
             rt.anchoredPosition = new Vector2(25, 0);
 
             prevPageButton = btnObj.GetComponent<Button>();
-            prevPageButton.image.color = new Color(0.5f, 0.5f, 0.5f, 0.8f);
+            if (prevPageButton.image != null)
+            {
+                prevPageButton.image.color = new Color(0.5f, 0.5f, 0.5f, 0.8f);
+            }
+            else
+            {
+                Debug.LogWarning("[BattleManager] PrevPageButton has no Image component.");
+            }
             
             GameObject textObj = new GameObject("Text", typeof(RectTransform), typeof(TMPro.TextMeshProUGUI));
             textObj.transform.SetParent(btnObj.transform, false);
@@ -2827,7 +2855,14 @@ public class BattleManager : MonoBehaviour
             rt.anchoredPosition = new Vector2(-25, 0);
 
             nextPageButton = btnObj.GetComponent<Button>();
-            nextPageButton.image.color = new Color(0.5f, 0.5f, 0.5f, 0.8f);
+            if (nextPageButton.image != null)
+            {
+                nextPageButton.image.color = new Color(0.5f, 0.5f, 0.5f, 0.8f);
+            }
+            else
+            {
+                Debug.LogWarning("[BattleManager] NextPageButton has no Image component.");
+            }
 
             GameObject textObj = new GameObject("Text", typeof(RectTransform), typeof(TMPro.TextMeshProUGUI));
             textObj.transform.SetParent(btnObj.transform, false);
@@ -2982,6 +3017,70 @@ public class BattleManager : MonoBehaviour
         else
         {
             Debug.LogWarning("[BattleManager] skillBackButton not found! Please assign it in Inspector or name it 'Back'.");
+        }
+    }
+
+    private void TryAutoAssignPaginationUI()
+    {
+        if (skillPanel == null)
+        {
+            GameObject foundPanel = GameObject.Find("SkillPanel");
+            if (foundPanel != null)
+            {
+                skillPanel = foundPanel;
+                Debug.Log("[BattleManager] Auto-assigned skillPanel by name: SkillPanel");
+            }
+        }
+
+        if (skillPanel == null) return;
+
+        if (skillBackButton == null)
+        {
+            Button[] buttons = skillPanel.GetComponentsInChildren<Button>(true);
+            foreach (Button btn in buttons)
+            {
+                string btnName = btn.name.ToLower();
+                if (btnName == "backbutton" || btnName == "back")
+                {
+                    skillBackButton = btn;
+                    Debug.Log($"[BattleManager] Auto-assigned skillBackButton: {btn.name}");
+                    break;
+                }
+            }
+        }
+
+        if (prevPageButton == null || nextPageButton == null)
+        {
+            Button[] buttons = skillPanel.GetComponentsInChildren<Button>(true);
+            foreach (Button btn in buttons)
+            {
+                string btnName = btn.name.ToLower();
+                if (prevPageButton == null && (btnName == "prevpagebutton" || btnName == "prevpage" || btnName == "prev"))
+                {
+                    prevPageButton = btn;
+                    Debug.Log($"[BattleManager] Auto-assigned prevPageButton: {btn.name}");
+                }
+                if (nextPageButton == null && (btnName == "nextpagebutton" || btnName == "nextpage" || btnName == "next"))
+                {
+                    nextPageButton = btn;
+                    Debug.Log($"[BattleManager] Auto-assigned nextPageButton: {btn.name}");
+                }
+            }
+        }
+
+        if (pageText == null)
+        {
+            TextMeshProUGUI[] texts = skillPanel.GetComponentsInChildren<TextMeshProUGUI>(true);
+            foreach (TextMeshProUGUI text in texts)
+            {
+                string textName = text.name.ToLower();
+                if (textName == "pagetext" || textName.Contains("page"))
+                {
+                    pageText = text;
+                    Debug.Log($"[BattleManager] Auto-assigned pageText: {text.name}");
+                    break;
+                }
+            }
         }
     }
     
@@ -3162,11 +3261,118 @@ public class BattleManager : MonoBehaviour
         CheckBattleEnd();
     }
 
+    private static bool IsSelfTargetEffect(EffectType type)
+    {
+        switch (type)
+        {
+            case EffectType.Recovery:
+            case EffectType.BuffAttack:
+            case EffectType.BuffDefense:
+            case EffectType.BuffAgility:
+            case EffectType.BuffMagic:
+            case EffectType.BuffLuck:
+            case EffectType.PassiveAttack:
+            case EffectType.PassiveDefense:
+            case EffectType.PassiveAgility:
+            case EffectType.PassiveMagic:
+            case EffectType.PassiveLuck:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private bool IsSelfTargetSkill(SkillData skill)
+    {
+        if (skill == null) return false;
+        if (skill.Effects == null || skill.Effects.Count == 0)
+        {
+            return skill.isRecovery || skill.isDefensive;
+        }
+
+        foreach (var effect in skill.Effects)
+        {
+            if (effect != null && IsSelfTargetEffect(effect.effectType)) return true;
+        }
+
+        return false;
+    }
+
+    private void ApplySelfEffects(PlayerStats attacker, SkillData skill)
+    {
+        if (attacker == null || skill == null || skill.Effects == null) return;
+
+        foreach (var effect in skill.Effects)
+        {
+            if (effect == null) continue;
+
+            switch (effect.effectType)
+            {
+                case EffectType.Recovery:
+                    ApplyRecoveryEffect(attacker, skill, effect);
+                    break;
+                case EffectType.BuffDefense:
+                    if (effect.effectAmount > 0)
+                    {
+                        attacker.defenseBuffAmount = effect.effectAmount;
+                        AddMessage($"{attacker.playerName} used {skill.skillName}! Defense increased!");
+                    }
+                    break;
+            }
+        }
+    }
+
+    private void ApplyRecoveryEffect(PlayerStats attacker, SkillData skill, SkillEffect effect)
+    {
+        if (effect.effectAmount <= 0f) return;
+
+        bool isMeditation = skill.skillName == "Meditation";
+        if (effect.recoveryTarget == RecoveryTarget.MP || effect.recoveryTarget == RecoveryTarget.Both)
+        {
+            int recoverAmount = Mathf.FloorToInt(attacker.maxMP * (effect.effectAmount / 100f));
+            attacker.currentMP = Mathf.Min(attacker.currentMP + recoverAmount, attacker.maxMP);
+            AddMessage(isMeditation
+                ? $"{attacker.playerName} meditated and recovered {recoverAmount} MP!"
+                : $"{attacker.playerName} recovered {recoverAmount} MP!");
+
+            var gm = GameManager.Instance;
+            if (gm != null)
+            {
+                gm.SaveFromPlayer(attacker);
+            }
+
+            StartCoroutine(MPRecoveryGlowEffect(attacker));
+        }
+
+        if (effect.recoveryTarget == RecoveryTarget.HP || effect.recoveryTarget == RecoveryTarget.Both)
+        {
+            int recoverAmount = Mathf.FloorToInt(attacker.maxHP * (effect.effectAmount / 100f));
+            attacker.Heal(recoverAmount);
+            AddMessage($"{attacker.playerName} recovered {recoverAmount} HP!");
+        }
+    }
+
+    private void ApplyCurseEffects(EnemyStats target, SkillData skill)
+    {
+        if (target == null || skill == null || skill.Effects == null) return;
+
+        foreach (var effect in skill.Effects)
+        {
+            if (effect == null || effect.curseData == null || effect.curseChance <= 0f) continue;
+
+            if (UnityEngine.Random.Range(0f, 100f) < effect.curseChance)
+            {
+                target.ApplyCurse(effect.curseData);
+                AddMessage($"{target.enemyName} is afflicted with {effect.curseData.curseName}!");
+            }
+        }
+    }
+
     private IEnumerator ExecuteSkill(PlayerStats attacker, SkillData skill, EnemyStats target)
 {
     if (attacker == null || skill == null) yield break;
     // 타겟이 필요한 스킬인데 타겟이 없으면 리턴 (회복/방어 스킬 제외)
-    if (target == null && !skill.isRecovery && !skill.isDefensive) yield break;
+    if (target == null && !IsSelfTargetSkill(skill)) yield break;
 
     // MP 소모
     if (skill.mpCost > 0)
@@ -3205,47 +3411,12 @@ public class BattleManager : MonoBehaviour
         }
     }
 
-    // 1. 회복 스킬 (Meditation)
-    if (skill.isRecovery)
+    // 1. 회복/버프 스킬
+    if (IsSelfTargetSkill(skill))
     {
-        if (skill.effectValue > 0)
-        {
-            // MP 회복 (Meditation)
-            if (skill.skillName == "Meditation")
-            {
-                int recoverAmount = Mathf.FloorToInt(attacker.maxMP * (skill.effectValue / 100f));
-                attacker.currentMP = Mathf.Min(attacker.currentMP + recoverAmount, attacker.maxMP);
-                AddMessage($"{attacker.playerName} meditated and recovered {recoverAmount} MP!");
-                
-                // MP 회복 시 GameManager에 저장
-                var gm = GameManager.Instance;
-                if (gm != null)
-                {
-                    gm.SaveFromPlayer(attacker);
-                }
-                
-                // MP 회복 시각 효과 (초록색 빛)
-                StartCoroutine(MPRecoveryGlowEffect(attacker));
-            }
-            // HP 회복 (추후 확장)
-            else
-            {
-                int recoverAmount = Mathf.FloorToInt(attacker.maxHP * (skill.effectValue / 100f));
-                attacker.Heal(recoverAmount);
-                AddMessage($"{attacker.playerName} recovered {recoverAmount} HP!");
-            }
-        }
+        ApplySelfEffects(attacker, skill);
     }
-    // 2. 방어 스킬 (Shield Wall)
-    else if (skill.isDefensive)
-    {
-        if (skill.effectValue > 0)
-        {
-            attacker.defenseBuffAmount = skill.effectValue;
-            AddMessage($"{attacker.playerName} used {skill.skillName}! Defense increased!");
-        }
-    }
-    // 3. 공격 스킬
+    // 2. 공격 스킬
     else if (target != null)
     {
         
@@ -3254,12 +3425,16 @@ public class BattleManager : MonoBehaviour
         int successfulHits = 0;
         int evadedHits = 0;
 
-        // 각 타격마다 독립적으로 회피/크리티컬 계산 + 딜레이
+        // 각 타격마다 독립적으로 명중률/크리티컬 계산 + 딜레이
         for (int i = 0; i < hits; i++)
         {
-            // 타격마다 회피 체크
-            if (CheckEvasion(target.Agility, attacker.Agility))
+            // 타격마다 명중률 체크
+            float hitChance = CalculateHitChance(skill, attacker, target);
+            float roll = UnityEngine.Random.Range(0f, 1f);
+            
+            if (roll >= hitChance)
             {
+                // 회피됨
                 evadedHits++;
                 if (hits > 1)
                 {
@@ -3277,17 +3452,26 @@ public class BattleManager : MonoBehaviour
 
             // 회피하지 않았으면 데미지 계산
             bool critical = CheckCritical(attacker.luck);
-            float multiplier = Random.Range(skill.minMultiplier, skill.maxMultiplier);
+            float multiplier = UnityEngine.Random.Range(skill.minMultiplier, skill.maxMultiplier);
 
             // 스탯 스케일링
-            int baseDamage = attacker.Attack;
-            if (skill.scalingStat == "Magic") baseDamage = attacker.Magic;
-            else if (skill.scalingStat == "Agility") baseDamage = attacker.Agility;
+            float baseStat = attacker.GetScaleValue(skill.scalingStat);
+            float scaleMultiplier = 1f;
+            if (skill.scalingStat == ScaleStat.CurrentHPPercent ||
+                skill.scalingStat == ScaleStat.CurrentMPPercent)
+            {
+                scaleMultiplier = baseStat;
+                baseStat = attacker.Attack;
+            }
+            else if (skill.scalingStat == ScaleStat.None)
+            {
+                baseStat = attacker.Attack;
+            }
 
             // [DEBUG LOG] 스킬 데미지 계산 정보
-            Debug.Log($"[BattleLog] Skill {skill.skillName} - Base Stat: {baseDamage}, Multiplier: {multiplier:F2}, Critical: {critical}");
+            Debug.Log($"[BattleLog] Skill {skill.skillName} - Base Stat: {baseStat}, Multiplier: {multiplier:F2}, Critical: {critical}, Scale: {scaleMultiplier:F2}");
 
-            int damage = Mathf.FloorToInt(baseDamage * multiplier);
+            int damage = Mathf.FloorToInt(baseStat * multiplier * scaleMultiplier);
             if (critical)
             {
                 damage = Mathf.FloorToInt(damage * 1.5f);
@@ -3313,15 +3497,8 @@ public class BattleManager : MonoBehaviour
                 AddMessage($"{attacker.playerName} used {skill.skillName}! {damage} damage{critMsg}");
             }
             
-            // 파이어볼 점화 (각 타격마다 10% 확률)
-            if (skill.skillID == "02") // Fireball
-            {
-                if (Random.Range(0f, 100f) < 10f)
-                {
-                    target.SetIgnited(true, 5);
-                    AddMessage($"{target.enemyName} is ignited!");
-                }
-            }
+            // 저주 적용 (각 타격마다 curseChance 확률로 적용)
+            ApplyCurseEffects(target, skill);
             
             // 다음 타격 전 딜레이 (마지막 타격 후에는 딜레이 없음)
             if (i < hits - 1)
@@ -3337,26 +3514,30 @@ public class BattleManager : MonoBehaviour
         }
 
         // 본인 피해 (Magic Bolt, Fireball) - 스킬 사용 자체에 대한 확률이므로 타격 성공 여부와 무관
-        if (skill.selfDamageChance > 0 && Random.Range(0f, 100f) < skill.selfDamageChance)
+        if (skill.selfDmgChance > 0 && UnityEngine.Random.Range(0f, 100f) < skill.selfDmgChance)
         {
             int selfDmg = 0;
-            if (skill.selfDamagePercent > 0)
+            if (skill.selfDmgPercent > 0)
             {
-                selfDmg = Mathf.FloorToInt(attacker.maxHP * (skill.selfDamagePercent / 100f));
-            }
-            else if (skill.skillID == "02") // Fireball special case (Ignite)
-            {
-                 attacker.SetIgnited(true, 5);
-                 AddMessage($"{attacker.playerName} is ignited by backlash!");
+                selfDmg = Mathf.FloorToInt(attacker.maxHP * (skill.selfDmgPercent / 100f));
             }
 
             if (selfDmg > 0)
             {
                 attacker.currentHP -= selfDmg;
-                // FIX: attacker.currentMP -> attacker.currentHP
                 attacker.currentHP = Mathf.Max(0, attacker.currentHP);
                 AddMessage($"{attacker.playerName} took {selfDmg} recoil damage!");
                 ShakePlayerStatusUI(attacker);
+            }
+        }
+
+        // 본인 저주 적용 (selfCurseData)
+        if (skill.selfCurseData != null && skill.selfCurseChance > 0)
+        {
+            if (UnityEngine.Random.Range(0f, 100f) < skill.selfCurseChance)
+            {
+                attacker.ApplyCurse(skill.selfCurseData);
+                AddMessage($"{attacker.playerName} is afflicted with {skill.selfCurseData.curseName} by backlash!");
             }
         }
     }
@@ -3371,7 +3552,7 @@ public class BattleManager : MonoBehaviour
     {
         float baseValue = (atk * 2f - def) / 2f;
         if (baseValue < 1f) baseValue = 1f;
-        int damage = Mathf.FloorToInt(baseValue * Random.Range(0.85f, 1.15f));
+        int damage = Mathf.FloorToInt(baseValue * UnityEngine.Random.Range(0.85f, 1.15f));
         if (isCritical) damage = Mathf.FloorToInt(damage * 1.5f);
         return Mathf.Max(damage, 1);
     }
@@ -3379,14 +3560,65 @@ public class BattleManager : MonoBehaviour
     // -------------------- Critical / Evasion --------------------
     private bool CheckCritical(int luck)
     {
-        float roll = Random.Range(0f, 100f);
+        float roll = UnityEngine.Random.Range(0f, 100f);
         return roll < criticalChance + luck;
     }
 
     private bool CheckEvasion(int targetAgility, int attackerAgility)
     {
-        float roll = Random.Range(0f, 100f);
+        float roll = UnityEngine.Random.Range(0f, 100f);
         return roll < evasionChance + (targetAgility - attackerAgility) * 0.5f;
+    }
+
+    // -------------------- Hit Chance Calculation --------------------
+    /// <summary>
+    /// 명중률을 계산합니다.
+    /// </summary>
+    /// <param name="usedSkill">사용된 스킬 데이터</param>
+    /// <param name="attacker">공격자 (PlayerStats)</param>
+    /// <param name="defender">방어자 (PlayerStats 또는 EnemyStats)</param>
+    /// <returns>명중 확률 (0.0 ~ 1.0)</returns>
+    private float CalculateHitChance(SkillData usedSkill, PlayerStats attacker, PlayerStats defender)
+    {
+        // Step 1: 기본 명중률 가져오기
+        float baseHit = usedSkill != null ? usedSkill.accuracy : 0.95f;
+
+        // Step 2: AGI 보정 (장비 보정이 포함된 최종 AGI 사용)
+        float attackerAGI = attacker.Agility; // 이미 GetEquipmentAgilityBonus()가 포함됨
+        float defenderAGI = defender.Agility;
+        float agiModifier = (attackerAGI * 1.5f) / (attackerAGI * 1.5f + defenderAGI);
+
+        // Step 3: 최종 합산 (PassiveAccuracy + 장비 Accuracy 보정치 추가)
+        float Luck = attacker.Luck;
+        float passiveAccuracyBonus = attacker.GetPassiveAccuracyBonus();
+        float itemAccuracyBonus = attacker.GetEquipmentAccuracyBonus(); // 장비 명중률 보정치
+        float finalHitChance = baseHit * agiModifier + (Luck * 0.002f) + passiveAccuracyBonus + itemAccuracyBonus;
+
+        // 최종값 제한
+        return Mathf.Clamp(finalHitChance, 0.2f, 0.98f);
+    }
+
+    /// <summary>
+    /// 명중률을 계산합니다 (EnemyStats 방어자용 오버로드).
+    /// </summary>
+    private float CalculateHitChance(SkillData usedSkill, PlayerStats attacker, EnemyStats defender)
+    {
+        // Step 1: 기본 명중률 가져오기
+        float baseHit = usedSkill != null ? usedSkill.accuracy : 0.95f;
+
+        // Step 2: AGI 보정 (장비 보정이 포함된 최종 AGI 사용)
+        float attackerAGI = attacker.Agility; // 이미 GetEquipmentAgilityBonus()가 포함됨
+        float defenderAGI = defender.Agility;
+        float agiModifier = (attackerAGI * 1.5f) / (attackerAGI * 1.5f + defenderAGI);
+
+        // Step 3: 최종 합산 (PassiveAccuracy + 장비 Accuracy 보정치 추가)
+        float Luck = attacker.Luck;
+        float passiveAccuracyBonus = attacker.GetPassiveAccuracyBonus();
+        float itemAccuracyBonus = attacker.GetEquipmentAccuracyBonus(); // 장비 명중률 보정치
+        float finalHitChance = baseHit * agiModifier + (Luck * 0.002f) + passiveAccuracyBonus + itemAccuracyBonus;
+
+        // 최종값 제한
+        return Mathf.Clamp(finalHitChance, 0.2f, 0.98f);
     }
 
     // -------------------- 메시지 --------------------
@@ -3632,40 +3864,37 @@ private void CacheHeroSkills()
 {
     heroSkillCache.Clear();
     roleSkillCache.Clear();
-    
+
+    // Load Hero skills from PlayerStatData
+    if (playerStatData != null && playerStatData.equippedSkills != null)
+    {
+        foreach (var skill in playerStatData.equippedSkills)
+        {
+            if (skill != null && skill.IsActive)  // Active 스킬만
+            {
+                heroSkillCache.Add(skill);
+                Debug.Log($"[BattleManager] Loaded equipped skill: {skill.skillName} (ID: {skill.skillID})");
+
+                // Keep fireball reference for legacy magic usage
+                if (skill.skillID == "03")
+                {
+                    fireballSkill = skill;
+                }
+            }
+        }
+
+        // 역할별 스킬 캐시 설정
+        roleSkillCache[PartyRole.Hero] = new List<SkillData>(heroSkillCache);
+    }
+    else
+    {
+        Debug.LogWarning("[BattleManager] playerStatData or equippedSkills is null!");
+        roleSkillCache[PartyRole.Hero] = new List<SkillData>();
+    }
+
+    // Load skills for other roles from skillLibrary (legacy system, will be improved later)
     if (skillLibrary != null)
     {
-        // 히어로 스킬: Slash(ID: "03"), Fireball(ID: "02")
-        var slash = skillLibrary.GetSkillByID("03");
-        var fireball = skillLibrary.GetSkillByID("02");
-        
-        if (slash != null)
-        {
-            // [User Request] Start with no skills
-            // heroSkillCache.Add(slash);
-            // Debug.Log($"[BattleManager] Hero skill added: {slash.skillName} (ID: {slash.skillID})");
-        }
-        else
-        {
-            Debug.LogWarning("[BattleManager] Slash skill (ID: 03) not found in skillLibrary!");
-        }
-        
-        if (fireball != null)
-        {
-            // [User Request] Start with no skills
-            // heroSkillCache.Add(fireball);
-            fireballSkill = fireball; // 마법사용으로도 사용
-            // Debug.Log($"[BattleManager] Hero skill added: {fireball.skillName} (ID: {fireball.skillID})");
-        }
-        else
-        {
-            Debug.LogWarning("[BattleManager] Fireball skill (ID: 02) not found in skillLibrary!");
-        }
-        
-        // 역할별 스킬 캐시 설정
-        // 히어로: Slash, Fireball
-        roleSkillCache[PartyRole.Hero] = new List<SkillData>(heroSkillCache);
-        
         // 워리어: Strong Slash (Shield Wall은 패시브)
         var strongSlash = skillLibrary.GetSkillByID("01");
         if (strongSlash != null)
@@ -3677,7 +3906,7 @@ private void CacheHeroSkills()
         {
             roleSkillCache[PartyRole.Warrior] = new List<SkillData>();
         }
-        
+
         // 로그: Quickhand
         var quickhand = skillLibrary.GetSkillByID("06");
         if (quickhand != null)
@@ -3689,38 +3918,42 @@ private void CacheHeroSkills()
         {
             roleSkillCache[PartyRole.Rogue] = new List<SkillData>();
         }
-        
+
         // 마법사: Meditation, Magic Bolt, Fireball
-    var meditation = skillLibrary.GetSkillByID("04");
-    var magicBolt = skillLibrary.GetSkillByID("05");
-    
-    roleSkillCache[PartyRole.Wizard] = new List<SkillData>();
-    
-    if (meditation != null)
-    {
-        roleSkillCache[PartyRole.Wizard].Add(meditation);
-        Debug.Log($"[BattleManager] Wizard skill added: {meditation.skillName}");
-    }
-    
-    if (magicBolt != null)
-    {
-        roleSkillCache[PartyRole.Wizard].Add(magicBolt);
-        Debug.Log($"[BattleManager] Wizard skill added: {magicBolt.skillName}");
-    }
-    
-    if (fireball != null)
-    {
-        roleSkillCache[PartyRole.Wizard].Add(fireball);
-        Debug.Log($"[BattleManager] Wizard skill added: {fireball.skillName}");
-    }
-        
-        // 로그 출력
-        Debug.Log($"[BattleManager] Skill cache initialized - Hero: {roleSkillCache[PartyRole.Hero].Count} skills, Warrior: {roleSkillCache[PartyRole.Warrior].Count} skills, Rogue: {roleSkillCache[PartyRole.Rogue].Count} skills, Wizard: {roleSkillCache[PartyRole.Wizard].Count} skills");
+        var meditation = skillLibrary.GetSkillByID("04");
+        var magicBolt = skillLibrary.GetSkillByID("05");
+        var fireball = skillLibrary.GetSkillByID("02");
+
+        roleSkillCache[PartyRole.Wizard] = new List<SkillData>();
+
+        if (meditation != null)
+        {
+            roleSkillCache[PartyRole.Wizard].Add(meditation);
+            Debug.Log($"[BattleManager] Wizard skill added: {meditation.skillName}");
+        }
+
+        if (magicBolt != null)
+        {
+            roleSkillCache[PartyRole.Wizard].Add(magicBolt);
+            Debug.Log($"[BattleManager] Wizard skill added: {magicBolt.skillName}");
+        }
+
+        if (fireball != null)
+        {
+            roleSkillCache[PartyRole.Wizard].Add(fireball);
+            Debug.Log($"[BattleManager] Wizard skill added: {fireball.skillName}");
+        }
     }
     else
     {
-        Debug.LogError("[BattleManager] skillLibrary is null! Cannot cache skills.");
+        Debug.LogWarning("[BattleManager] skillLibrary is null! Other party roles will have no skills.");
+        roleSkillCache[PartyRole.Warrior] = new List<SkillData>();
+        roleSkillCache[PartyRole.Rogue] = new List<SkillData>();
+        roleSkillCache[PartyRole.Wizard] = new List<SkillData>();
     }
+
+    // 로그 출력
+    Debug.Log($"[BattleManager] Skill cache initialized - Hero: {roleSkillCache[PartyRole.Hero].Count} skills, Warrior: {roleSkillCache[PartyRole.Warrior].Count} skills, Rogue: {roleSkillCache[PartyRole.Rogue].Count} skills, Wizard: {roleSkillCache[PartyRole.Wizard].Count} skills");
 }
     
     // 현재 캐릭터의 스킬 목록 가져오기
@@ -3958,3 +4191,5 @@ private void CacheHeroSkills()
         return activeEnemies.Count > 0;
     }
 }
+
+

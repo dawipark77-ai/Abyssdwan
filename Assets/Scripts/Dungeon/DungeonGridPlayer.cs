@@ -23,32 +23,12 @@ public class DungeonGridPlayer : MonoBehaviour
     {
         EnsureReferences();
         
-        // [GameManager] 데이터 연동 시작
-        // 던전 씬이 처음 로드될 때 GameManager가 없으면 생성
-        GameManager gm = GameManager.EnsureInstance();
-
-        // 1. 전투에서 돌아온 경우 (스냅샷 존재) -> 플레이어 정보를 GameManager에서 가져옴
-        // 1. 전투에서 돌아온 경우 (스냅샷 존재) -> 플레이어 정보를 GameManager에서 가져옴
-        if (gm.hasPlayerSnapshot)
+        // [SO] PlayerStats가 스스로 statData를 로드하므로 GameManager 연동 제거
+        PlayerStats stats = GetComponent<PlayerStats>();
+        if (stats == null)
         {
-            PlayerStats stats = GetComponent<PlayerStats>();
-            // 없으면 추가해서라도 맞춤
-            if (stats == null) stats = gameObject.AddComponent<PlayerStats>();
-            
-            gm.ApplyToPlayer(stats);
-        }
-        else
-        {
-            // 2. 게임 첫 시작인 경우 -> 현재 정보를 GameManager에 저장
-            PlayerStats stats = GetComponent<PlayerStats>();
-            // 없으면 자동 추가 (기본 스탯으로 생성됨)
-            if (stats == null) 
-            {
-                stats = gameObject.AddComponent<PlayerStats>();
-                Debug.Log("[DungeonGridPlayer] PlayerStats component was missing. Auto-added.");
-            }
-
-            gm.SaveFromPlayer(stats);
+            stats = gameObject.AddComponent<PlayerStats>();
+            Debug.Log("[DungeonGridPlayer] PlayerStats component was missing. Auto-added.");
         }
 
         UpdateWorldPosition();

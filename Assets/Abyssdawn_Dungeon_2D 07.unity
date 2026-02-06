@@ -2919,8 +2919,7 @@ MonoBehaviour:
   isDefending: 0
   defenceReduction: 0.4
   defenseBuffAmount: 0
-  isIgnited: 0
-  igniteTurnsRemaining: 0
+  activeCurses: []
 --- !u!1 &489313531
 GameObject:
   m_ObjectHideFlags: 0
@@ -4437,7 +4436,7 @@ GameObject:
   - component: {fileID: 777059572}
   - component: {fileID: 777059571}
   m_Layer: 5
-  m_Name: Active Skills
+  m_Name: ActiveSkills
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8125,7 +8124,7 @@ GameObject:
   - component: {fileID: 1515149592}
   - component: {fileID: 1515149591}
   m_Layer: 5
-  m_Name: Passive Skills
+  m_Name: PassiveSkills
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -10955,6 +10954,7 @@ GameObject:
   - component: {fileID: 1949323150}
   - component: {fileID: 1949323152}
   - component: {fileID: 1949323151}
+  - component: {fileID: 1949323153}
   m_Layer: 5
   m_Name: Skills
   m_TagString: Untagged
@@ -11021,6 +11021,24 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1949323149}
   m_CullTransparentMesh: 1
+--- !u!114 &1949323153
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1949323149}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2c9d0fbbef5721c4c8a7177b726b6622, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StatusUIUpdate
+  playerStats: {fileID: 11400000, guid: a176c788f5d164441af8bae214804085, type: 2}
+  statusPanel: {fileID: 1949323150}
+  passiveSlots:
+  - {fileID: 0}
+  activeSlots:
+  - {fileID: 0}
 --- !u!1 &1950108294
 GameObject:
   m_ObjectHideFlags: 0

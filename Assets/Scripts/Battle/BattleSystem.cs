@@ -19,14 +19,14 @@ public class BattleSystem : MonoBehaviour
     {
         int hitChance = attackerAgility * 2 - targetAgility; // 간단 공식
         hitChance = Mathf.Clamp(hitChance, 10, 100);         // 최소10% 최대100%
-        int roll = Random.Range(0, 100);
+        int roll = UnityEngine.Random.Range(0, 100);
         return roll <= hitChance;
     }
 
     private bool CheckCritical(int luck)
     {
         float critChance = luck * 0.05f; // 1 luck = 5%
-        return Random.value < critChance;
+        return UnityEngine.Random.value < critChance;
     }
 
     // -------------------- 플레이어 공격 --------------------
@@ -103,3 +103,5 @@ public class BattleSystem : MonoBehaviour
         isDefending = true;
     }
 }
+
+

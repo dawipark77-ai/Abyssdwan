@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e, type: 3}
+  m_Name: Skill_05_MagicBolt
+  m_EditorClassIdentifier: Assembly-CSharp::AbyssdawnBattle.SkillData
+  skillID: 05
+  skillName: Magic Bolt
+  skillIcon: {fileID: 4335510463699945670, guid: cffd9a52fafb7b14caac9228c2e18e2f, type: 3}
+  description: Low-cost magic attack with a risk of self-damage.
+  usageType: 0
+  damageType: 1
+  scaleStat: 2
+  hpCostPercent: 0
+  mpCost: 3
+  minMult: 1.2
+  maxMult: 1.3
+  hitCount: 1
+  selfDmgPercent: 5
+  selfDmgChance: 10
+  selfCurse: 0
+  selfCurseChance: 0
+  targetCurse: 0
+  targetCurseChance: 0
+  effectType: 0
+  recoveryTarget: 0
+  effectAmount: 0
+  triggerCondition: 0
